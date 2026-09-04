@@ -9,16 +9,55 @@
   </head>
   <body>
     <header id="navbar">
-      <span id="navbarBrand">Chantier</span>
+      <button type="button" id="navbarBrand">IES CONSULTING</button>
       <nav id="navbarLinks">
-        <button type="button" class="nav-link active" data-view="viewer">Viewer</button>
+        <button type="button" class="nav-link" data-view="presentation">Présentation</button>
+        <button type="button" class="nav-link" data-view="viewer">Viewer</button>
         <button type="button" class="nav-link" data-view="collision">Collision</button>
         <button type="button" class="nav-link" data-view="discussions">Discussions</button>
       </nav>
     </header>
 
     <div id="appBody">
-      <div id="view-viewer" class="view">
+      <div id="view-landing" class="view">
+        <div id="landingHero">
+          <div id="landingHeroOverlay"></div>
+          <div id="landingHeroText">
+            <h1>IES CONSULTING</h1>
+            <p>Il s'agit d'un Proof Of Concept afin de voir ce qui est faisable comme app faite maison, afin de créer un outil utilisable par IES sur ses chantiers et ainsi démocratiser l'usage du BIM auprès de tous les acteurs d'un chantier.</p>
+          </div>
+        </div>
+
+        <div id="landingSections">
+          <div class="landing-section-card">
+            <h3>Viewer</h3>
+            <p>Charger et explorer les maquettes en direct dans le navigateur, sans installation.</p>
+          </div>
+          <div class="landing-section-card">
+            <h3>Détection de collision</h3>
+            <p>Détecter automatiquement les conflits entre corps de métier afin de les résoudre avant qu'ils ne deviennent des problèmes sur le chantier.</p>
+          </div>
+          <div class="landing-section-card">
+            <h3>Échanges autour de la maquette</h3>
+            <p>Discuter et annoter directement la maquette, avec les bons interlocuteurs.</p>
+          </div>
+        </div>
+
+        <div id="landingButtons">
+          <button type="button" id="landingMoreBtn">En savoir plus</button>
+          <button type="button" id="landingDemoBtn">Démo</button>
+        </div>
+      </div>
+
+      <div id="view-presentation" class="view" hidden>
+        <div id="presentationSidebar">
+          <p class="presentation-sidebar-label">Sections</p>
+          <ul class="info-list" id="presentationSectionsList"></ul>
+        </div>
+        <div id="presentationContent"></div>
+      </div>
+
+      <div id="view-viewer" class="view" hidden>
         <div id="viewerWrap">
           <canvas id="viewerCanvas"></canvas>
           <div id="loadingOverlay">Chargement de la maquette...</div>

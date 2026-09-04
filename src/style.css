@@ -29,7 +29,17 @@ html, body {
   padding: 0 18px;
 }
 
-#navbarBrand { font-weight: 700; font-size: 14px; }
+#navbarBrand {
+  font-weight: 700;
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+#navbarBrand:hover { color: var(--accent); }
 
 #navbarLinks { display: flex; gap: 4px; }
 
@@ -712,3 +722,239 @@ html, body {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+/* Page Landing (accueil, accessible via le bouton "IES CONSULTING" de la
+   navbar) : image + pitch + 3 sections + boutons vers Presentation/Viewer.
+   Page Presentation : le drawer seul (contenu porte depuis le mockup vault
+   cdc-dashboard.html, restyle avec les tokens de l'app). */
+#view-landing {
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+#landingHero {
+  position: relative;
+  flex-shrink: 0;
+  min-height: 340px;
+  background-image: url("/images/bim-illustration.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+}
+#landingHeroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.55) 0%, rgba(13, 17, 23, 0.92) 100%);
+}
+#landingHeroText {
+  position: relative;
+  padding: 40px;
+  max-width: 640px;
+}
+#landingHeroText h1 { margin: 0 0 12px; font-size: 26px; letter-spacing: 0.02em; color: #fff; }
+#landingHeroText p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.85); }
+
+#landingSections {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  padding: 28px 40px 0;
+}
+.landing-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.landing-section-card h3 { margin: 0 0 6px; font-size: 14px; }
+.landing-section-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+#landingButtons {
+  align-self: center;
+  display: flex;
+  gap: 12px;
+  margin: 26px 0 34px;
+}
+#landingMoreBtn, #landingDemoBtn {
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#landingMoreBtn {
+  background: var(--accent);
+  color: #0d1117;
+  border: none;
+}
+#landingDemoBtn {
+  background: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+#landingDemoBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+#presentationSidebar {
+  flex: 0 0 260px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px 12px;
+  overflow-y: auto;
+}
+.presentation-sidebar-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 8px;
+  padding: 0 8px;
+}
+.pres-section-item {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.pres-section-item:hover { color: var(--text); background: var(--bg); }
+.pres-section-item.active { color: var(--accent); background: var(--accent-bg, rgba(88, 166, 255, 0.12)); font-weight: 700; }
+
+#presentationContent {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 40px 60px;
+  overflow-y: auto;
+}
+.pres-panel { display: none; max-width: 720px; }
+.pres-panel.active { display: block; }
+.pres-panel h2 { font-size: 21px; margin: 0 0 8px; }
+.pres-hint { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+
+.pres-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.pres-card h3 { font-size: 14px; margin: 0 0 8px; }
+.pres-card p { font-size: 13px; line-height: 1.6; margin: 0 0 8px; }
+.pres-card p:last-child { margin-bottom: 0; }
+.pres-card p.muted { color: var(--muted); }
+.pres-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.pres-card li { margin-bottom: 6px; }
+
+.pres-callout {
+  background: rgba(88, 166, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin: 10px 0 14px;
+}
+.pres-callout strong { color: var(--accent); }
+
+.pres-demo-vs-reel {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 10px 0 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.pres-demo-vs-reel strong { color: var(--text); }
+
+/* Section Constat : mise en page dediee (grille de cartes numerotees), plus
+   marquee que le reste du CDC, pensee pour etre scannee rapidement. */
+.constat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.constat-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px 18px 14px;
+}
+.constat-num {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.constat-card h3 { font-size: 13.5px; margin: 0 0 6px; }
+.constat-card p { font-size: 12.5px; line-height: 1.55; color: var(--muted); margin: 0; }
+.constat-card p.constat-note { margin-top: 6px; font-style: italic; }
+
+.constat-card.is-demo { border-left-color: #3fb950; }
+.constat-card.is-demo .constat-num { color: #3fb950; }
+.constat-card.is-missing { border-left-color: #f85149; }
+.constat-card.is-missing .constat-num { color: #f85149; }
+
+/* Cartes retournables (section Constat & reponse) : le constat en face
+   avant, la reponse en face arriere, retournee au clic. */
+.flip-card { height: 220px; cursor: pointer; perspective: 1200px; }
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+.flip-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.flip-card-back { transform: rotateY(180deg); }
+.flip-card-face p { flex: 1; overflow-y: auto; }
+.flip-card-footer {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.flip-card-back .flip-card-footer { color: #3fb950; }
+
+@keyframes flip-peek {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+}
+.flip-card.peek .flip-card-inner { animation: flip-peek 2.2s ease; }
+
+.constat-highlight {
+  background: rgba(88, 166, 255, 0.1);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 4px 0 22px;
+}
+.constat-highlight strong { color: var(--accent); }
+
+.pres-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.pres-table th, .pres-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.pres-table th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+.pres-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pres-feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.pres-feat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.pres-feat-card .pres-fi-num { font-size: 11px; color: var(--accent); font-weight: 700; }
+.pres-feat-card h3 { font-size: 13px; margin: 6px 0 5px; }
+.pres-feat-card p { font-size: 12px; color: var(--muted); margin: 0; }
