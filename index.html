@@ -24,7 +24,7 @@
           <div id="landingHeroOverlay"></div>
           <div id="landingHeroText">
             <h1>IES CONSULTING</h1>
-            <p>Il s'agit d'un Proof Of Concept afin de voir ce qui est faisable comme app faite maison, afin de créer un outil utilisable par IES sur ses chantiers et ainsi démocratiser l'usage du BIM auprès de tous les acteurs d'un chantier.</p>
+            <p>Ce projet est le Proof of Concept d'une application pensée pour faciliter le travail du BIM Manager sur un chantier, tout en démocratisant l'usage de la maquette auprès de tous les corps de métier présents sur un projet de construction ou de rénovation.</p>
           </div>
         </div>
 
@@ -35,7 +35,7 @@
           </div>
           <div class="landing-section-card">
             <h3>Détection de collision</h3>
-            <p>Détecter automatiquement les conflits entre corps de métier afin de les résoudre avant qu'ils ne deviennent des problèmes sur le chantier.</p>
+            <p>Détecter les conflits entre corps de métier afin de les résoudre avant qu'ils ne deviennent des problèmes sur le chantier.</p>
           </div>
           <div class="landing-section-card">
             <h3>Échanges autour de la maquette</h3>
@@ -47,6 +47,17 @@
           <button type="button" id="landingMoreBtn">En savoir plus</button>
           <button type="button" id="landingDemoBtn">Démo</button>
         </div>
+
+        <footer id="landingFooter">
+          <a class="footer-credit" href="https://gillescobigo.com" target="_blank" rel="noopener noreferrer">
+            <img src="/images/logo-gc-white.png" alt="">
+            Réalisé par <span class="footer-credit-name">Gilles Cobigo</span>
+          </a>
+          <a class="footer-linkedin" href="https://www.linkedin.com/in/gillescobigo" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Gilles Cobigo">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h17a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 20.5 2ZM8 19H5v-9h3ZM6.5 8.25A1.75 1.75 0 1 1 8.3 6.5a1.78 1.78 0 0 1-1.8 1.75ZM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0 0 13 14.19a.66.66 0 0 0 0 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 0 1 2.7-1.4c1.55 0 3.36.86 3.36 3.66Z"/></svg>
+            LinkedIn
+          </a>
+        </footer>
       </div>
 
       <div id="view-presentation" class="view" hidden>
@@ -69,7 +80,7 @@
           <div id="coupeToolbar">
             <button id="coupeBtn" title="Cliquez ensuite sur une surface de la maquette pour y créer une coupe">Créer une coupe</button>
             <button id="coupeInvertBtn" title="Inverser le côté coupé" hidden>Inverser la coupe</button>
-            <button id="coupeToggleVisibilityBtn" title="Afficher ou masquer le rectangle/poignées du plan de coupe" hidden>Masquer le plan</button>
+            <button id="coupeToggleVisibilityBtn" title="Afficher ou masquer le rectangle/poignées du plan de coupe" hidden>Masquer le plan de coupe</button>
           </div>
         </div>
 
@@ -88,7 +99,7 @@
           </details>
 
           <details class="info-section" id="section-fiche" open>
-            <summary class="info-section-title"><span>Élément sélectionné</span></summary>
+            <summary class="info-section-title"><span>Info sélection</span></summary>
             <p class="info-empty" id="fichePlaceholder">Cliquez sur un élément de la maquette, ou sur le nom d'un niveau.</p>
             <dl class="fiche-content" id="ficheContent" hidden></dl>
             <div id="ficheDocs"></div>
@@ -98,8 +109,8 @@
 
       <div id="view-collision" class="view" hidden>
         <div id="collisionRecap">
-          <h2>Détections</h2>
-          <p class="info-empty" id="detectionsEmpty">Aucune détection simulée pour l'instant.</p>
+          <h2>Interactions entre maquettes</h2>
+          <p class="info-empty" id="detectionsEmpty">Pas de maquettes permettant une vraie détection de collision pour l'instant : les conflits présentés ici sont simulés, posés manuellement à titre d'exemple.</p>
           <ul class="info-list" id="detectionsList"></ul>
         </div>
 
@@ -117,7 +128,7 @@
           </div>
 
           <aside id="collisionInfoPanel" class="side-panel">
-            <button type="button" id="collisionBackBtn" class="reset-btn">← Détections</button>
+            <button type="button" id="collisionBackBtn" class="reset-btn">← Interactions</button>
 
             <details class="info-section" id="section-collision-maquettes" open>
               <summary class="info-section-title"><span>Maquettes</span></summary>
@@ -135,7 +146,7 @@
       <div id="view-discussions" class="view" hidden>
         <div id="discussionsListPane">
           <h2>Discussions</h2>
-          <p class="info-empty" id="discussionsFilterNote">Fils créés par vous ou où vous êtes tagué(e).</p>
+          <p class="info-empty" id="discussionsFilterNote">Chaque utilisateur retrouve ici ses discussions en cours : celles qu'il a créées, et celles où il est tagué.</p>
           <div id="discussionsTypeFilter">
             <button type="button" class="thread-toggle-btn active" data-filter="tout">Tout</button>
             <button type="button" class="thread-toggle-btn" data-filter="collision">Collision</button>
@@ -159,6 +170,7 @@
             <button type="button" class="thread-toggle-btn active" data-mode="apres">Après</button>
             <button type="button" class="thread-toggle-btn" data-mode="avant">Avant</button>
           </div>
+          <p class="info-empty">"Avant" : la maquette au moment de la création du fil. "Après" : la maquette actuelle, mise à jour.</p>
 
           <ul id="discussionsDetailMessages"></ul>
           <form id="discussionsReplyForm" hidden>

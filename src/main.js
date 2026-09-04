@@ -745,7 +745,7 @@ function restoreViewerState(snapshot) {
     coupeBtn.textContent = "Désactiver la coupe";
     coupeBtn.classList.add("active");
     coupeToggleVisibilityBtn.hidden = false;
-    coupeToggleVisibilityBtn.textContent = "Masquer le plan";
+    coupeToggleVisibilityBtn.textContent = "Masquer le plan de coupe";
     coupeInvertBtn.hidden = false;
   }
 }
@@ -1217,7 +1217,7 @@ function destroyActiveCoupe() {
     activeCoupeId = null;
   }
   coupeToggleVisibilityBtn.hidden = true;
-  coupeToggleVisibilityBtn.textContent = "Masquer le plan";
+  coupeToggleVisibilityBtn.textContent = "Masquer le plan de coupe";
   coupeInvertBtn.hidden = true;
   coupeBtn.textContent = "Créer une coupe";
   coupeBtn.classList.remove("active");
@@ -1246,10 +1246,10 @@ coupeToggleVisibilityBtn.addEventListener("click", () => {
   // ca sert juste a degager la vue une fois le plan bien positionne.
   if (sectionPlanes.getShownControl() === activeCoupeId) {
     sectionPlanes.hideControl();
-    coupeToggleVisibilityBtn.textContent = "Afficher le plan";
+    coupeToggleVisibilityBtn.textContent = "Afficher le plan de coupe";
   } else {
     sectionPlanes.showControl(activeCoupeId);
-    coupeToggleVisibilityBtn.textContent = "Masquer le plan";
+    coupeToggleVisibilityBtn.textContent = "Masquer le plan de coupe";
   }
 });
 
@@ -1267,7 +1267,7 @@ function createCoupeFromHit(hit) {
   coupeBtn.textContent = "Désactiver la coupe";
   coupeBtn.classList.add("active");
   coupeToggleVisibilityBtn.hidden = false;
-  coupeToggleVisibilityBtn.textContent = "Masquer le plan";
+  coupeToggleVisibilityBtn.textContent = "Masquer le plan de coupe";
   coupeInvertBtn.hidden = false;
 }
 

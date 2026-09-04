@@ -958,3 +958,15 @@ html, body {
 .pres-feat-card .pres-fi-num { font-size: 11px; color: var(--accent); font-weight: 700; }
 .pres-feat-card h3 { font-size: 13px; margin: 6px 0 5px; }
 .pres-feat-card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+/* Footer credit, reproduit a la lettre de Projets/V1-Echanges/mockups/preview-prospect.html
+   (meme pattern que PreviewCredit.tsx du portfolio), avec le logo blanc pour le fond sombre
+   de l'app. */
+#landingFooter { flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 20px; margin-top: 32px; margin-bottom: 24px; padding: 12px 8px; color: var(--muted); font-size: 14px; }
+#landingFooter .footer-credit { display: flex; align-items: center; gap: 10px; color: var(--muted); text-decoration: none; transition: color .15s ease; }
+#landingFooter .footer-credit:hover { color: var(--text); }
+#landingFooter .footer-credit img { height: 32px; width: auto; opacity: .9; }
+#landingFooter .footer-credit-name { text-decoration: underline; }
+#landingFooter .footer-linkedin { display: flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; transition: color .15s ease; }
+#landingFooter .footer-linkedin:hover { color: var(--text); }
+#landingFooter .footer-linkedin svg { width: 18px; height: 18px; }
