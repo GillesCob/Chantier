@@ -318,6 +318,19 @@ if (firstFlipCard) {
   inner.addEventListener("animationend", () => firstFlipCard.classList.remove("peek"), { once: true });
 }
 
+// Point de vue vise par "Recentrer" : par defaut la position initiale exacte
+// de la camera, mais reoriente vers le point de vue d'un clash/fil de
+// discussion des qu'on en consulte un (contexte porte par le meme bouton,
+// deplace avec viewerWrap).
+// Declare ici (avant activateView, pas a cote de "const viewer" plus bas) :
+// un rechargement direct sur l'onglet Viewer appelle activateView("viewer")
+// des le chargement, avant que le reste du fichier ne soit execute. Y
+// referencer recenterTarget avant son "let" leve une ReferenceError qui
+// interrompt tout le script (plus rien ne s'initialise, meme Collision et
+// Discussions).
+let recenterTarget = null;
+let initialCameraState = null;
+
 function activateView(viewName) {
   navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === viewName));
   document.querySelectorAll(".view").forEach((view) => {
@@ -407,14 +420,6 @@ const viewer = new Viewer({
 viewer.scene.canvas.backgroundColor = [0.051, 0.055, 0.063];
 
 const sectionPlanes = new SectionPlanesPlugin(viewer);
-
-// Point de vue vise par "Recentrer" : par defaut la position initiale exacte
-// de la camera (capturee une fois le premier cadrage termine, pas juste un
-// fit generique qui peut donner un angle different), mais reoriente vers le
-// point de vue d'un clash/fil de discussion des qu'on en consulte un
-// (contexte porte par le meme bouton, deplace avec viewerWrap).
-let recenterTarget = null;
-let initialCameraState = null;
 
 recenterBtn.addEventListener("click", () => {
   if (recenterTarget) {
