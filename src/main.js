@@ -1300,6 +1300,20 @@ renderMaquetteRows(maquettesList, MAQUETTES);
 const IfcAPI = new WebIFC.IfcAPI();
 IfcAPI.SetWasmPath("/wasm/");
 
+// Messages de l'overlay de chargement : un vrai message par maquette
+// (annonce), entrecoupe de phrases generiques sans vraie info dessous
+// (illusion de granularite), le tout en rotation tant que tout n'est pas
+// charge. Chaque "loaded" reel vient interrompre la rotation une fois pour
+// afficher une vraie info (nombre d'elements), avant qu'elle ne reprenne.
+const loadingCyclePhrases = MAQUETTES.map((m) => "Chargement de " + m.label + "...")
+  .concat(["Analyse de la géométrie...", "Construction de la scène 3D...", "Préparation de l'affichage..."]);
+let loadingCycleIndex = 0;
+loadingOverlay.textContent = loadingCyclePhrases[0];
+const loadingCycleInterval = setInterval(() => {
+  loadingCycleIndex = (loadingCycleIndex + 1) % loadingCyclePhrases.length;
+  loadingOverlay.textContent = loadingCyclePhrases[loadingCycleIndex];
+}, 900);
+
 IfcAPI.Init().then(() => {
   const ifcLoader = new WebIFCLoaderPlugin(viewer, { WebIFC, IfcAPI });
   let loadedCount = 0;
@@ -1321,6 +1335,7 @@ IfcAPI.Init().then(() => {
 
       const countText = model.numEntities.toLocaleString("fr-FR") + " éléments";
       (maquetteCountEls.get(maquette.id) || []).forEach((el) => { el.textContent = countText; });
+      loadingOverlay.textContent = maquette.label + " chargée (" + countText + ")";
 
       if (maquette.isReference) {
         renderNiveaux();
@@ -1328,6 +1343,7 @@ IfcAPI.Init().then(() => {
 
       loadedCount++;
       if (loadedCount === MAQUETTES.length) {
+        clearInterval(loadingCycleInterval);
         loadingOverlay.classList.add("hidden");
         viewer.cameraFlight.flyTo(viewer.scene, () => {
           initialCameraState = {
@@ -1340,6 +1356,7 @@ IfcAPI.Init().then(() => {
     });
 
     model.on("error", (msg) => {
+      clearInterval(loadingCycleInterval);
       loadingOverlay.textContent = "Erreur de chargement (" + maquette.label + ") : " + msg;
     });
   });
