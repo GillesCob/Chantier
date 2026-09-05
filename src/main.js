@@ -336,6 +336,15 @@ if (firstFlipCard) {
 let recenterTarget = null;
 let initialCameraState = null;
 
+// Vue par defaut figee (05/09), valeurs relevees via la console DevTools sur
+// une orientation validee par Gilles : plus fiable qu'un fit automatique sur
+// la scene, qui peut legerement varier (angle par defaut de xeokit).
+const DEFAULT_CAMERA_STATE = {
+  eye: [1.3697083864615462, 16.764731675931436, 55.512816283417536],
+  look: [30.30047599811991, -1.1681965485168886, -12.349389746978844],
+  up: [0.09263274774816085, 0.971702521543951, -0.21728640930751625]
+};
+
 function activateView(viewName) {
   navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === viewName));
   document.querySelectorAll(".view").forEach((view) => {
@@ -429,6 +438,9 @@ const viewer = new Viewer({
   canvasId: "viewerCanvas",
   transparent: false
 });
+// "viewer" est une const de module (invisible depuis la console DevTools),
+// exposee ici pour pouvoir inspecter/piloter la camera manuellement.
+window.viewer = viewer;
 
 viewer.scene.canvas.backgroundColor = [0.051, 0.055, 0.063];
 
@@ -437,10 +449,8 @@ const sectionPlanes = new SectionPlanesPlugin(viewer);
 recenterBtn.addEventListener("click", () => {
   if (recenterTarget) {
     recenterTarget();
-  } else if (initialCameraState) {
-    viewer.cameraFlight.flyTo(initialCameraState);
   } else {
-    viewer.cameraFlight.flyTo(viewer.scene);
+    viewer.cameraFlight.flyTo(initialCameraState || DEFAULT_CAMERA_STATE);
   }
 });
 
@@ -1540,13 +1550,8 @@ IfcAPI.Init().then(() => {
       if (loadedCount === MAQUETTES.length) {
         clearInterval(loadingCycleInterval);
         loadingOverlay.classList.add("hidden");
-        viewer.cameraFlight.flyTo(viewer.scene, () => {
-          initialCameraState = {
-            eye: viewer.camera.eye.slice(),
-            look: viewer.camera.look.slice(),
-            up: viewer.camera.up.slice()
-          };
-        });
+        viewer.cameraFlight.flyTo(DEFAULT_CAMERA_STATE);
+        initialCameraState = DEFAULT_CAMERA_STATE;
       }
     });
 
