@@ -10,6 +10,7 @@
   <body>
     <header id="navbar">
       <button type="button" id="navbarBrand">IES CONSULTING</button>
+      <button type="button" id="navbarToggle" aria-label="Ouvrir le menu">☰</button>
       <nav id="navbarLinks">
         <button type="button" class="nav-link" data-view="presentation">Présentation</button>
         <button type="button" class="nav-link" data-view="viewer">Viewer</button>
@@ -60,6 +61,8 @@
       </div>
 
       <div id="view-presentation" class="view" hidden>
+        <button type="button" id="presentationSidebarToggle" aria-label="Afficher les sections">☰ Sections</button>
+        <div id="presentationSidebarBackdrop"></div>
         <div id="presentationSidebar">
           <p class="presentation-sidebar-label">Sections</p>
           <ul class="info-list" id="presentationSectionsList"></ul>
@@ -81,8 +84,11 @@
             <button id="coupeInvertBtn" title="Inverser le côté coupé" hidden>Inverser la coupe</button>
             <button id="coupeToggleVisibilityBtn" title="Afficher ou masquer le rectangle/poignées du plan de coupe" hidden>Masquer le plan de coupe</button>
           </div>
+
+          <button type="button" id="infoPanelToggle" aria-label="Afficher les niveaux, maquettes et infos">☰ Infos</button>
         </div>
 
+        <div id="infoPanelBackdrop"></div>
         <aside id="infoPanel" class="side-panel">
           <details class="info-section" id="section-niveaux" open>
             <summary class="info-section-title">

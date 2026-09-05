@@ -2,6 +2,7 @@ import { Viewer, WebIFCLoaderPlugin, XKTLoaderPlugin, SectionPlanesPlugin } from
 import * as WebIFC from "web-ifc";
 
 const loadingOverlay = document.getElementById("loadingOverlay");
+const viewerCanvas = document.getElementById("viewerCanvas");
 const niveauxList = document.getElementById("niveauxList");
 const maquettesList = document.getElementById("maquettesList");
 const fichePlaceholder = document.getElementById("fichePlaceholder");
@@ -23,8 +24,13 @@ const docModalDownload = document.getElementById("docModalDownload");
 const downloadModalOverlay = document.getElementById("downloadModalOverlay");
 const downloadModalOk = document.getElementById("downloadModalOk");
 const navLinks = Array.from(document.querySelectorAll(".nav-link"));
+const navbarLinksEl = document.getElementById("navbarLinks");
+const navbarToggle = document.getElementById("navbarToggle");
 const presentationSectionsList = document.getElementById("presentationSectionsList");
 const presentationContent = document.getElementById("presentationContent");
+const presentationSidebar = document.getElementById("presentationSidebar");
+const presentationSidebarToggle = document.getElementById("presentationSidebarToggle");
+const presentationSidebarBackdrop = document.getElementById("presentationSidebarBackdrop");
 const navbarBrand = document.getElementById("navbarBrand");
 const landingMoreBtn = document.getElementById("landingMoreBtn");
 
@@ -34,6 +40,8 @@ landingMoreBtn.addEventListener("click", () => activateView("presentation"));
 const viewerWrap = document.getElementById("viewerWrap");
 const viewViewer = document.getElementById("view-viewer");
 const infoPanel = document.getElementById("infoPanel");
+const infoPanelToggle = document.getElementById("infoPanelToggle");
+const infoPanelBackdrop = document.getElementById("infoPanelBackdrop");
 const collisionRecap = document.getElementById("collisionRecap");
 const collisionDetail = document.getElementById("collisionDetail");
 const collisionViewerSlot = document.getElementById("collisionViewerSlot");
@@ -165,16 +173,18 @@ const PRESENTATION_SECTIONS = [
       <div class="constat-highlight">Ces blocages freinent aujourd'hui l'adoption et l'usage de la maquette sur le chantier. L'outil que je propose n'est pas un viewer de plus : chaque fonctionnalité répond à un problème vraiment rencontré sur le terrain, sur Mareterra ou ailleurs.</div>
       <div class="pres-card">
         <h3>Un usage majoritairement occasionnel des outils actuels</h3>
-        <table class="pres-table">
-          <tr><th>Corps de métier</th><th>Fréquence</th><th>Besoin réel</th></tr>
-          <tr><td>Client / MOA</td><td>Ponctuel</td><td>Vue d'ensemble simple, avancement visuel, zéro jargon BIM</td></tr>
-          <tr><td>Architecte / MOE</td><td>Fréquent</td><td>Comparaison prévu/réalisé, annotation de remarques de conception</td></tr>
-          <tr><td>Bureau d'études (structure, fluides, élec...)</td><td>Intensif</td><td>Vue détaillée de sa discipline + interfaces avec les autres corps d'état</td></tr>
-          <tr><td>Coordinateur / BIM manager</td><td>Quotidien</td><td>Outil pivot. Détection de conflits, versions, contrôle qualité des maquettes</td></tr>
-          <tr><td>Conducteur de travaux / chef de chantier</td><td>Quotidien, terrain</td><td>Consultation rapide en mobilité, annotation liée à un point précis</td></tr>
-          <tr><td>Artisans / compagnons</td><td>Ponctuel, ciblé</td><td>"Qu'est-ce qui est prévu ici" en lecture, zéro formation possible</td></tr>
-          <tr><td>Bureau de contrôle</td><td>Ponctuel</td><td>Consultation pour ses propres vérifications réglementaires</td></tr>
-        </table>
+        <div class="table-scroll">
+          <table class="pres-table">
+            <tr><th>Corps de métier</th><th>Fréquence</th><th>Besoin réel</th></tr>
+            <tr><td>Client / MOA</td><td>Ponctuel</td><td>Vue d'ensemble simple, avancement visuel, zéro jargon BIM</td></tr>
+            <tr><td>Architecte / MOE</td><td>Fréquent</td><td>Comparaison prévu/réalisé, annotation de remarques de conception</td></tr>
+            <tr><td>Bureau d'études (structure, fluides, élec...)</td><td>Intensif</td><td>Vue détaillée de sa discipline + interfaces avec les autres corps d'état</td></tr>
+            <tr><td>Coordinateur / BIM manager</td><td>Quotidien</td><td>Outil pivot. Détection de conflits, versions, contrôle qualité des maquettes</td></tr>
+            <tr><td>Conducteur de travaux / chef de chantier</td><td>Quotidien, terrain</td><td>Consultation rapide en mobilité, annotation liée à un point précis</td></tr>
+            <tr><td>Artisans / compagnons</td><td>Ponctuel, ciblé</td><td>"Qu'est-ce qui est prévu ici" en lecture, zéro formation possible</td></tr>
+            <tr><td>Bureau de contrôle</td><td>Ponctuel</td><td>Consultation pour ses propres vérifications réglementaires</td></tr>
+          </table>
+        </div>
         <p class="muted">Ces besoins sont trop hétérogènes pour un outil unique et figé. Un outil développé en interne peut au contraire proposer des fonctionnalités différentes selon les acteurs, sans imposer la même interface à tout le monde.</p>
       </div>
     `
@@ -255,13 +265,30 @@ function getInitialPresentationSectionId() {
   return PRESENTATION_SECTIONS[0].id;
 }
 
+// Active une section (bouton du tiroir, ou bouton "suivant" mobile en bas de
+// page) : facteur commun aux deux entrees, jamais duplique.
+function activatePresentationSection(sectionId) {
+  document.querySelectorAll(".pres-section-item").forEach((b) => b.classList.toggle("active", b.dataset.id === sectionId));
+  document.querySelectorAll(".pres-panel").forEach((p) => p.classList.toggle("active", p.dataset.id === sectionId));
+  presentationContent.scrollTop = 0;
+  closePresentationSidebar();
+  try {
+    localStorage.setItem("chantier-presentation-section", sectionId);
+  } catch (e) {
+    // localStorage indisponible, pas bloquant.
+  }
+  if (history.replaceState) {
+    history.replaceState(null, "", "#presentation/" + sectionId);
+  }
+}
+
 function renderPresentation() {
   presentationSectionsList.innerHTML = "";
   presentationContent.innerHTML = "";
 
   const initialSectionId = getInitialPresentationSectionId();
 
-  PRESENTATION_SECTIONS.forEach((section) => {
+  PRESENTATION_SECTIONS.forEach((section, i) => {
     const isActive = section.id === initialSectionId;
     const li = document.createElement("li");
     const btn = document.createElement("button");
@@ -269,18 +296,7 @@ function renderPresentation() {
     btn.className = "pres-section-item" + (isActive ? " active" : "");
     btn.dataset.id = section.id;
     btn.textContent = section.tag;
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".pres-section-item").forEach((b) => b.classList.toggle("active", b === btn));
-      document.querySelectorAll(".pres-panel").forEach((p) => p.classList.toggle("active", p.dataset.id === section.id));
-      try {
-        localStorage.setItem("chantier-presentation-section", section.id);
-      } catch (e) {
-        // localStorage indisponible, pas bloquant.
-      }
-      if (history.replaceState) {
-        history.replaceState(null, "", "#presentation/" + section.id);
-      }
-    });
+    btn.addEventListener("click", () => activatePresentationSection(section.id));
     li.appendChild(btn);
     presentationSectionsList.appendChild(li);
 
@@ -291,6 +307,24 @@ function renderPresentation() {
       <h2>${section.tag}</h2>
       ${section.body}
     `;
+
+    // Bouton "section suivante", mobile uniquement (cf media query) : sur la
+    // derniere section, mene au Viewer plutot qu'a une section inexistante.
+    const nextSection = PRESENTATION_SECTIONS[i + 1];
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "pres-next-btn";
+    nextBtn.textContent = nextSection ? "Suivant →" : "Voir le Viewer";
+    nextBtn.addEventListener("click", () => {
+      if (nextSection) {
+        activatePresentationSection(nextSection.id);
+      } else {
+        restoreAllModelsVisible();
+        activateView("viewer");
+      }
+    });
+    panel.appendChild(nextBtn);
+
     presentationContent.appendChild(panel);
   });
 }
@@ -381,8 +415,42 @@ navLinks.forEach((link) => {
     // n'existe pas encore a ce moment-la plus bas dans le fichier.
     restoreAllModelsVisible();
     activateView(link.dataset.view);
+    navbarLinksEl.classList.remove("open");
   });
 });
+
+// Menu navbar mobile (hamburger) : cache/affiche la liste des onglets sur
+// petit ecran, sans rien changer sur desktop (bouton invisible au-dela du
+// breakpoint, cf media query).
+navbarToggle.addEventListener("click", () => {
+  navbarLinksEl.classList.toggle("open");
+});
+
+// Tiroir "Sections" de la page Presentation, mobile uniquement : masque par
+// defaut (cf media query), un bouton dedie l'affiche en overlay par-dessus
+// le contenu plutot que de partager la largeur avec lui.
+presentationSidebarToggle.addEventListener("click", () => {
+  presentationSidebar.classList.add("open");
+  presentationSidebarBackdrop.hidden = false;
+});
+function closePresentationSidebar() {
+  presentationSidebar.classList.remove("open");
+  presentationSidebarBackdrop.hidden = true;
+}
+presentationSidebarBackdrop.addEventListener("click", closePresentationSidebar);
+
+// Meme principe pour le panneau Niveaux/Maquettes/Info selection du Viewer,
+// mobile uniquement (cf media query) : masque par defaut pour laisser la
+// maquette prendre toute la page, ouvert en overlay via ce bouton.
+infoPanelToggle.addEventListener("click", () => {
+  infoPanel.classList.add("open");
+  infoPanelBackdrop.hidden = false;
+});
+function closeInfoPanelDrawer() {
+  infoPanel.classList.remove("open");
+  infoPanelBackdrop.hidden = true;
+}
+infoPanelBackdrop.addEventListener("click", closeInfoPanelDrawer);
 
 // Capture avant qu'activateView() ne le reecrive (replaceState) : necessaire
 // plus bas pour retrouver un fil precis (#discussions/<id>) au chargement.
@@ -1473,7 +1541,7 @@ function createCoupeFromHit(hit) {
   coupeInvertBtn.hidden = false;
 }
 
-viewer.scene.input.on("mouseclicked", (canvasCoords) => {
+function handleViewerPick(canvasCoords) {
   if (coupePickingMode) {
     const hit = viewer.scene.pick({ canvasPos: canvasCoords, pickSurface: true, pickSurfaceNormal: true });
     setCoupePickingMode(false);
@@ -1497,7 +1565,43 @@ viewer.scene.input.on("mouseclicked", (canvasCoords) => {
   } else {
     clearFiche();
   }
-});
+}
+
+viewer.scene.input.on("mouseclicked", handleViewerPick);
+
+// "mouseclicked" de xeokit ne se declenche jamais au tactile (aucune souris
+// n'est impliquee) : sur mobile, un tap ne selectionnait donc jamais rien.
+// Un tap est detecte a la main (peu de mouvement, pas trop long entre le
+// debut et la fin du toucher), pour ne pas interferer avec le CameraControl
+// de xeokit qui gere deja l'orbite/le pincer-zoomer au tactile sur le meme
+// canvas.
+let viewerTouchStart = null;
+viewerCanvas.addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 1) {
+    viewerTouchStart = null;
+    return;
+  }
+  const rect = viewerCanvas.getBoundingClientRect();
+  viewerTouchStart = {
+    x: e.touches[0].clientX - rect.left,
+    y: e.touches[0].clientY - rect.top,
+    time: Date.now()
+  };
+}, { passive: true });
+
+viewerCanvas.addEventListener("touchend", (e) => {
+  if (!viewerTouchStart) return;
+  const rect = viewerCanvas.getBoundingClientRect();
+  const touch = e.changedTouches[0];
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+  const moved = Math.hypot(x - viewerTouchStart.x, y - viewerTouchStart.y);
+  const elapsed = Date.now() - viewerTouchStart.time;
+  viewerTouchStart = null;
+  if (moved < 10 && elapsed < 500) {
+    handleViewerPick([x, y]);
+  }
+}, { passive: true });
 
 renderMaquetteRows(maquettesList, MAQUETTES);
 
