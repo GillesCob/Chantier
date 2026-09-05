@@ -78,7 +78,7 @@ const CONSTAT_REPONSE = [
   {
     num: "01",
     title: "Manipulation complexe",
-    probleme: "Les outils de visualisation existants demandent une prise en main lourde, inadaptée à un usage occasionnel : il faut installer le bon logiciel, dans la bonne version, puis télécharger la dernière version de la maquette, savoir où la trouver, la charger. Difficile d'embarquer de nouveaux utilisateurs avec autant de barrières avant même de pouvoir manipuler la maquette.",
+    probleme: "Les outils de visualisation existants demandent une prise en main lourde, inadaptée à un usage occasionnel : il faut installer le bon logiciel, dans la bonne version, puis savoir où trouver le fichier de la maquette et le charger. Difficile d'embarquer de nouveaux utilisateurs avec autant de barrières avant même de pouvoir manipuler la maquette.",
     reponse: "On a la main sur le design et sur les fonctionnalités mises à disposition. Ce n'est pas un logiciel figé imposé par un éditeur."
   },
   {
