@@ -1,4 +1,4 @@
-import { Viewer, WebIFCLoaderPlugin, SectionPlanesPlugin } from "@xeokit/xeokit-sdk";
+import { Viewer, WebIFCLoaderPlugin, XKTLoaderPlugin, SectionPlanesPlugin } from "@xeokit/xeokit-sdk";
 import * as WebIFC from "web-ifc";
 
 const loadingOverlay = document.getElementById("loadingOverlay");
@@ -8,6 +8,7 @@ const fichePlaceholder = document.getElementById("fichePlaceholder");
 const ficheContent = document.getElementById("ficheContent");
 const recenterBtn = document.getElementById("recenterBtn");
 const niveauxResetBtn = document.getElementById("niveauxResetBtn");
+const maquettesResetBtn = document.getElementById("maquettesResetBtn");
 const coupeBtn = document.getElementById("coupeBtn");
 const coupeToggleVisibilityBtn = document.getElementById("coupeToggleVisibilityBtn");
 const coupeInvertBtn = document.getElementById("coupeInvertBtn");
@@ -220,7 +221,7 @@ const PRESENTATION_SECTIONS = [
     body: `
       <p class="pres-hint">Point par point, ce que cette démo simplifie par rapport à une vraie version.</p>
       <div class="constat-grid">
-        <div class="constat-card"><span class="constat-num">01</span><h3>Maquettes</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier. Elles sont chargées directement dans le navigateur sans conversion, ce qui reste viable ici grâce à leur poids réduit. En réel, de vraies maquettes (souvent bien plus lourdes) nécessiteraient une conversion en format compressé (.xkt) pour rester fluides.</p></div>
+        <div class="constat-card"><span class="constat-num">01</span><h3>Maquettes</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier. Elles sont chargées directement dans le navigateur sans conversion, ce qui reste viable ici grâce à leur poids réduit. Pour une vraie maquette plus lourde, la conversion en format compressé (.xkt) a été testée dans ce POC (visible dans le viewer sous le nom Maquette CEA) : le fichier passe de 27 Mo à 8,6 Mo, pensé pour charger plus vite qu'un IFC brut de cette taille.</p></div>
         <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Cette démo n'est pas responsive mais pensée pour un écran d'ordinateur. Un usage sur chantier suppose une consultation sur mobile ou tablette, ce qui n'est pas traité dans ce POC.</p></div>
         <div class="constat-card"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>Les statuts (nouveau/confirmé/écarté) sont posés à la main sur 2 à 3 clashs simulés. En réel, un moteur de détection géométrique combiné à un historique de statut piloté par coordonnée absolue permettrait de ne réexaminer que les nouvelles détections à chaque mise à jour de maquette.</p></div>
         <div class="constat-card"><span class="constat-num">04</span><h3>Page Collision</h3><p>L'organisation actuelle affiche d'abord la liste des comparaisons faites entre deux maquettes (ex. Structure vs Toiture métallique), puis, dans chacune, la liste des conflits trouvés ; cliquer sur un conflit précis en affiche le détail et la discussion. C'est une fonctionnalité à discuter afin de mettre en place le besoin réel, pas figée par cette démo.</p></div>
@@ -363,7 +364,15 @@ function activateView(viewName) {
 }
 
 navLinks.forEach((link) => {
-  link.addEventListener("click", () => activateView(link.dataset.view));
+  link.addEventListener("click", () => {
+    // Repart d'un etat sain si on quitte directement (sans passer par un
+    // bouton retour) une detection ou un fil qui masquait certaines
+    // maquettes (ex. Maquette CEA hors sujet). "restoreAllModelsVisible"
+    // n'est appelee qu'au clic, jamais au chargement initial : MAQUETTES
+    // n'existe pas encore a ce moment-la plus bas dans le fichier.
+    restoreAllModelsVisible();
+    activateView(link.dataset.view);
+  });
 });
 
 // Capture avant qu'activateView() ne le reecrive (replaceState) : necessaire
@@ -395,18 +404,18 @@ if (savedView !== "landing") {
 
 // Donnees simulees : ce POC ne branche aucune GED reelle (cf CDC, un doc reste
 // un pointeur vers la GED du chantier, jamais une copie). Cles alignees sur les
-// noms de niveaux reels de Projet_structure.ifc (choix assumee du 04/09, cf
-// MOC-chantier.md : maquette d'exemple eduscol, pas une vraie maquette de
-// chantier, a expliciter dans le CDC).
+// noms de niveaux reels de la Maquette_CEA.xkt (Projet_Archi.ifc), devenue la
+// source des niveaux (test du 05/09, cf MOC-chantier.md : maquette d'exemple
+// eduscol, pas une vraie maquette de chantier, a expliciter dans le CDC).
 const DOCS_BY_NIVEAU = {
-  "Niveau 0": [
+  "Soubassement": [
     { nom: "Plan fondations.pdf", lot: "Structure", type: "Plan", version: "Indice B" }
   ],
-  "Niveau 1": [
+  "R+0": [
     { nom: "Plan structure Niveau 1.pdf", lot: "Structure", type: "Plan", version: "Indice C" },
     { nom: "Plan CVC Niveau 1.pdf", lot: "CVC", type: "Plan", version: "v2.0" }
   ],
-  "Niveau 2": [
+  "R+1": [
     { nom: "Plan structure Niveau 2.pdf", lot: "Structure", type: "Plan", version: "Indice C" }
   ]
 };
@@ -441,9 +450,18 @@ recenterBtn.addEventListener("click", () => {
 // evite le probleme de temps de chargement sans conversion .xkt. Maquettes
 // d'exemple eduscol, pas une vraie maquette de chantier : a expliciter dans
 // le CDC envoye a Eric.
+// "shown" est la seule source de verite pour "cette maquette doit-elle etre
+// visible" (jamais relire model.visible pour ca : xeokit le recalcule a
+// partir de la visibilite de ses objets, ce qui cree une boucle avec le
+// filtrage par niveau ci-dessous). applyVisibility() est le seul endroit qui
+// pousse ces intentions (shown + niveau.checked) vers la scene xeokit.
 const MAQUETTES = [
-  { id: "archi", src: "/models/Projet_structure.ifc", label: "Projet_structure.ifc", color: "#c9d1d9", isReference: true },
-  { id: "toit", src: "/models/Toit_Metal_2.ifc", label: "Toit_Metal_2.ifc", color: "#e8935c", colorize: [0.91, 0.58, 0.36] }
+  { id: "archi", src: "/models/Projet_structure.ifc", label: "Maquette STR", color: "#c9d1d9", shown: true },
+  { id: "toit", src: "/models/Toit_Metal_2.ifc", label: "Maquette TOITURE", color: "#e8935c", colorize: [0.91, 0.58, 0.36], shown: true },
+  // Test de conversion IFC -> XKT (cf CDC section 4, item Maquettes) : Projet_Archi.ifc
+  // (27 Mo) converti via @xeokit/xeokit-convert en Maquette_CEA.xkt (8.6 Mo), pour
+  // comparer le temps de chargement au rechargement face aux 2 IFC bruts ci-dessus.
+  { id: "cea", src: "/models/Maquette_CEA.xkt", label: "Maquette CEA", color: "#a371f7", format: "xkt", shown: true }
 ];
 
 // Detections + clashs simules (pas de vrai moteur de detection geometrique
@@ -522,6 +540,9 @@ const CURRENT_USER = "Vous";
 // maquette, avec createur + personnes taggees (cibleIntervenantId/
 // cibleGroupeId dans le CDC). disc-3 n'implique pas l'utilisateur courant,
 // pour demontrer que le filtre par defaut l'exclut bien.
+// "maquettes" fige quelles maquettes etaient actives au moment simule de la
+// creation du fil (Maquette CEA n'existant pas encore a cette epoque
+// fictive, elle est toujours masquee ici).
 const DISCUSSIONS = [
   {
     id: "disc-1",
@@ -529,6 +550,7 @@ const DISCUSSIONS = [
     auteur: "Vous",
     tagged: ["Julie Martin (BE Structure)"],
     open: true,
+    maquettes: [{ id: "archi", visible: true }, { id: "toit", visible: false }, { id: "cea", visible: false }],
     discussion: [
       { auteur: "Vous", texte: "Le passage de gaine ici est bien validé avec le BE ?" },
       { auteur: "Julie Martin (BE Structure)", texte: "Oui, validé la semaine dernière." }
@@ -540,6 +562,7 @@ const DISCUSSIONS = [
     auteur: "Sofia Benali (Coordination BIM)",
     tagged: ["Vous"],
     open: true,
+    maquettes: [{ id: "archi", visible: true }, { id: "toit", visible: false }, { id: "cea", visible: false }],
     discussion: [
       { auteur: "Sofia Benali (Coordination BIM)", texte: "Peux-tu confirmer l'emplacement du tableau électrique sur ce niveau ?" }
     ]
@@ -550,15 +573,34 @@ const DISCUSSIONS = [
     auteur: "Karim Haddad (Charpente)",
     tagged: ["Julie Martin (BE Structure)"],
     open: false,
+    maquettes: [{ id: "archi", visible: true }, { id: "toit", visible: true }, { id: "cea", visible: false }],
     discussion: [
       { auteur: "Karim Haddad (Charpente)", texte: "Point réglé lors de la réunion de chantier." }
+    ]
+  },
+  {
+    id: "disc-4",
+    zone: "Niveau R+2, lits",
+    auteur: "Vous",
+    tagged: ["Léa Fontaine (BE Architecture)"],
+    open: true,
+    maquettes: [{ id: "archi", visible: false }, { id: "toit", visible: false }, { id: "cea", visible: true }],
+    niveaux: [
+      { name: "Soubassement", checked: false },
+      { name: "R+0", checked: false },
+      { name: "R+1", checked: false },
+      { name: "R+2", checked: true },
+      { name: "R+3", checked: false }
+    ],
+    discussion: [
+      { auteur: "Vous", texte: "Les lits apparaissent ici, au R+2, mais ne devraient pas y être : ils sont rattachés au mauvais niveau dans la maquette. Peux-tu corriger le rattachement dans le modèle source ?" }
     ]
   }
 ];
 
 // Pas de vrai annuaire de contacts pour ce POC : liste fixe des personnes
 // deja utilisees dans les fils simules.
-const KNOWN_PEOPLE = ["Julie Martin (BE Structure)", "Karim Haddad (Charpente)", "Sofia Benali (Coordination BIM)"];
+const KNOWN_PEOPLE = ["Julie Martin (BE Structure)", "Karim Haddad (Charpente)", "Sofia Benali (Coordination BIM)", "Léa Fontaine (BE Architecture)"];
 
 // Un clash EST un fil de discussion (meme mecanisme), pas une copie : on
 // garde les references reelles vers CLASHES/DISCUSSIONS pour qu'une reponse
@@ -626,12 +668,35 @@ function setThreadVisualMode(mode, thread) {
 
   const goToThreadView = () => {
     if (threadType(thread) === "collision") {
+      // Pas de snapshot par clash : la visibilite se deduit des maquettes de
+      // la detection a laquelle il appartient (meme regle que dans l'onglet
+      // Collision, ex. Maquette CEA masquee hors sujet).
+      const detection = DETECTIONS.find((d) => d.id === thread.detectionId);
+      if (detection) {
+        MAQUETTES.forEach((m) => { m.shown = detection.modeles.includes(m.id); });
+        applyVisibility();
+        renderMaquetteRows(maquettesList, MAQUETTES);
+      }
       flyToClash(thread);
-    } else if (thread.camera) {
-      restoreViewerState(thread);
-      viewer.cameraFlight.flyTo({ eye: thread.camera.eye, look: thread.camera.look, up: thread.camera.up, duration: 1 });
     } else {
-      viewer.cameraFlight.flyTo(viewer.scene);
+      // "thread.maquettes" fige quelles maquettes etaient actives a la
+      // creation du fil (captureViewerState pour un vrai fil cree depuis le
+      // Viewer, ou fige a la main pour les fils de demo simules).
+      if (thread.maquettes) {
+        restoreViewerState(thread);
+      }
+      if (thread.camera) {
+        viewer.cameraFlight.flyTo({ eye: thread.camera.eye, look: thread.camera.look, up: thread.camera.up, duration: 1 });
+      } else {
+        // Sans camera capturee, cadrer sur la scene entiere (viewer.scene)
+        // zoome bien trop large des qu'un filtre maquette/niveau ne montre
+        // qu'une petite partie du batiment (ex. juste le Niveau R+2) : on
+        // cadre plutot sur ce qui est reellement visible a ce moment-la.
+        // fitFOV plus grand que le defaut (45) : l'objet remplit une plus
+        // grande part du champ de vision a l'arrivee, donc la camera se
+        // rapproche davantage.
+        viewer.cameraFlight.flyTo({ aabb: viewer.scene.getAABB(viewer.scene.visibleObjectIds), fitFOV: 70 });
+      }
     }
   };
   goToThreadView();
@@ -694,6 +759,7 @@ discussionsBackBtn.addEventListener("click", () => {
   discussionsDetailPane.hidden = true;
   discussionsListPane.hidden = false;
   recenterTarget = null;
+  restoreAllModelsVisible();
   renderDiscussionsPage();
   if (history.replaceState) {
     history.replaceState(null, "", "#discussions");
@@ -712,7 +778,7 @@ function captureViewerState() {
       up: viewer.camera.up.slice()
     },
     niveaux: niveauxState.map((n) => ({ name: n.name, checked: n.checked })),
-    maquettes: MAQUETTES.map((m) => ({ id: m.id, visible: m.model ? m.model.visible : true })),
+    maquettes: MAQUETTES.map((m) => ({ id: m.id, visible: m.shown })),
     coupe: activeCoupeId ? capturedCoupeState() : null
   };
 }
@@ -726,21 +792,22 @@ function capturedCoupeState() {
   };
 }
 
+// Restaure tout ou partie d'un snapshot (capture complete via
+// captureViewerState, ou juste "maquettes" pour un fil qui ne fige que
+// la visibilite sans camera/niveaux/coupe, ex. les fils de demo simules).
 function restoreViewerState(snapshot) {
-  snapshot.niveaux.forEach(({ name, checked }) => {
+  (snapshot.maquettes || []).forEach(({ id, visible }) => {
+    const maquette = MAQUETTES.find((m) => m.id === id);
+    if (maquette) maquette.shown = visible;
+  });
+  (snapshot.niveaux || []).forEach(({ name, checked }) => {
     const niveau = niveauxState.find((n) => n.name === name);
     if (niveau) {
       niveau.checked = checked;
       niveau.checkboxEl.checked = checked;
-      viewer.scene.setObjectsVisible(niveau.objectIds, checked);
     }
   });
-  snapshot.maquettes.forEach(({ id, visible }) => {
-    const maquette = MAQUETTES.find((m) => m.id === id);
-    if (maquette && maquette.model) {
-      maquette.model.visible = visible;
-    }
-  });
+  applyVisibility();
   renderMaquetteRows(maquettesList, MAQUETTES);
 
   destroyActiveCoupe();
@@ -755,6 +822,16 @@ function restoreViewerState(snapshot) {
     coupeToggleVisibilityBtn.textContent = "Masquer le plan de coupe";
     coupeInvertBtn.hidden = false;
   }
+}
+
+// Repasse toutes les maquettes visibles, quel que soit ce qui les a masquees
+// (une detection ou un fil de discussion). Appelee au clic de navbar et aux
+// boutons "retour" des detections/fils, jamais depuis un point du script qui
+// s'execute avant que MAQUETTES ne soit initialisee plus bas.
+function restoreAllModelsVisible() {
+  MAQUETTES.forEach((m) => { m.shown = true; });
+  applyVisibility();
+  renderMaquetteRows(maquettesList, MAQUETTES);
 }
 
 let pendingSnapshot = null;
@@ -859,7 +936,12 @@ function openDetection(detection) {
   collisionViewerSlot.appendChild(viewerWrap);
   window.dispatchEvent(new Event("resize"));
 
+  // Ne montre que les maquettes de cette detection (ex. Maquette CEA hors
+  // sujet d'une comparaison structure/toiture, masquee ici) : avant le rendu
+  // des cases a cocher, pour qu'elles refletent l'etat a jour des l'entree.
   const subset = MAQUETTES.filter((m) => detection.modeles.includes(m.id));
+  MAQUETTES.forEach((m) => { m.shown = detection.modeles.includes(m.id); });
+  applyVisibility();
   renderMaquetteRows(collisionMaquettesList, subset);
 
   renderCollisionsList(CLASHES.filter((c) => c.detectionId === detection.id));
@@ -1006,6 +1088,7 @@ collisionBackBtn.addEventListener("click", () => {
   collisionRecap.hidden = false;
   viewViewer.insertBefore(viewerWrap, infoPanel);
   recenterTarget = null;
+  restoreAllModelsVisible();
 });
 
 renderDetections();
@@ -1020,20 +1103,25 @@ function renderMaquetteRows(targetList, maquettesSubset) {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = maquette.model ? maquette.model.visible : true;
+    checkbox.checked = maquette.shown;
     checkbox.addEventListener("change", () => {
-      if (maquette.model) {
-        maquette.model.visible = checkbox.checked;
-      }
+      maquette.shown = checkbox.checked;
+      applyVisibility();
     });
 
     const swatch = document.createElement("span");
     swatch.className = "maquette-swatch";
     swatch.style.background = maquette.color;
 
-    const name = document.createElement("span");
+    const name = document.createElement("button");
+    name.type = "button";
     name.className = "maquette-name";
     name.textContent = maquette.label;
+    name.addEventListener("click", () => {
+      maquettesSubset.forEach((m) => { m.shown = m === maquette; });
+      applyVisibility();
+      renderMaquetteRows(targetList, maquettesSubset);
+    });
 
     const count = document.createElement("span");
     count.className = "maquette-count";
@@ -1049,17 +1137,91 @@ function renderMaquetteRows(targetList, maquettesSubset) {
 
 const niveauxState = [];
 
-function renderNiveaux() {
-  const archiMetaModel = viewer.metaScene.metaModels["archi"];
-  if (!archiMetaModel) return;
+// Seul point de la page qui pousse un changement de visibilite vers xeokit.
+// Recalcule tout depuis 2 sources independantes : maquette.shown (case a
+// cocher/solo maquette) et niveau.checked (case a cocher/solo niveau) :
+// - une maquette non "shown" : tous ses objets masques, quels que soient les
+//   niveaux coches ou non (regle du 05/09 : le solo maquette ne doit JAMAIS
+//   toucher aux niveaux) ;
+// - une maquette "shown" : chaque objet suit le niveau auquel il est
+//   rattache (s'il y en a un), les objets sans niveau connu restent visibles.
+// Toujours tout recalculer d'un coup (jamais une reapplication partielle) :
+// c'est ce qui evitait les bugs en cascade des versions precedentes (masquer
+// une maquette puis en montrer une autre pouvait rendre visibles des objets
+// d'une maquette pourtant encore decochee).
+function applyVisibility() {
+  const shownById = new Map(MAQUETTES.map((m) => [m.id, m.shown]));
 
-  const storeyObjects = Object.values(viewer.metaScene.metaObjectsByType["IfcBuildingStorey"] || {})
-    .filter((metaObject) => metaObject.metaModels.some((m) => m.id === "archi"));
+  MAQUETTES.forEach((m) => {
+    if (m.model) m.model.visible = m.shown;
+  });
+
+  niveauxState.forEach((niveau) => {
+    Object.entries(niveau.objectsByMaquette).forEach(([maquetteId, ids]) => {
+      const shown = (shownById.get(maquetteId) !== false) && niveau.checked;
+      viewer.scene.setObjectsVisible(ids, shown);
+    });
+  });
+}
+
+// Correspondance manuelle par NOM de niveau propre a chaque maquette (plus
+// fiable que toute geometrie, cf le 05/09 : les altitudes ne se recoupaient
+// pas entre fichiers, et deux heuristiques Z de suite ont donne des ordres
+// incoherents). La CEA et Archi ont chacune leurs vrais niveaux IFC ("Niveau
+// R+1" / "Niveau 1" par ex.) ; Toiture n'en a pas, ses objets sont rattaches
+// en bloc au dernier niveau (R+3). Un element mal rattache dans un fichier
+// source (deja vu sur des lits, cf discussion "Niveau R+2, lits") reste
+// alors visible au mauvais endroit : assume, ca revele un souci de la
+// maquette elle-meme, pas un bug du viewer.
+const NIVEAU_MAPPING = [
+  { label: "Soubassement", cea: "Base Mur soubassement", archi: null },
+  { label: "R+0", cea: "Structure R+0", archi: "Niveau 0" },
+  { label: "R+1", cea: "Structure R+1", archi: "Niveau 1" },
+  { label: "R+2", cea: "Niveau R+2", archi: "Niveau 2" },
+  { label: "R+3", cea: "Niveau R+3", archi: null }
+];
+
+function findStoreyObjectIds(maquetteId, storeyName) {
+  if (!storeyName || !viewer.metaScene.metaModels[maquetteId]) return [];
+  const metaObject = Object.values(viewer.metaScene.metaObjectsByType["IfcBuildingStorey"] || {})
+    .find((mo) => mo.name === storeyName && mo.metaModels.some((m) => m.id === maquetteId));
+  return metaObject ? viewer.metaScene.getObjectIDsInSubtree(metaObject.id) : [];
+}
+
+function renderNiveaux() {
+  if (!viewer.metaScene.metaModels["cea"]) return;
+
+  // Le rendu peut se re-declencher a chaque maquette qui termine son
+  // chargement (elles arrivent dans un ordre pas garanti) : on repart de zero
+  // a chaque fois, mais en conservant l'etat coche choisi par l'utilisateur
+  // entre-temps, plutot que de le reinitialiser silencieusement.
+  const previousChecked = new Map(niveauxState.map((n) => [n.name, n.checked]));
 
   niveauxList.innerHTML = "";
-  storeyObjects.forEach((metaObject) => {
-    const objectIds = viewer.metaScene.getObjectIDsInSubtree(metaObject.id);
-    const niveau = { name: metaObject.name, objectIds, checked: true, checkboxEl: null };
+  niveauxState.length = 0;
+
+  const niveaux = NIVEAU_MAPPING.map((entry) => {
+    const objectsByMaquette = {};
+    const ceaIds = findStoreyObjectIds("cea", entry.cea);
+    if (ceaIds.length > 0) objectsByMaquette.cea = ceaIds;
+    const archiIds = findStoreyObjectIds("archi", entry.archi);
+    if (archiIds.length > 0) objectsByMaquette.archi = archiIds;
+    if (entry.label === "R+3") {
+      const toitMetaModel = viewer.metaScene.metaModels["toit"];
+      if (toitMetaModel && toitMetaModel.rootMetaObject) {
+        const toitIds = viewer.metaScene.getObjectIDsInSubtree(toitMetaModel.rootMetaObject.id);
+        if (toitIds.length > 0) objectsByMaquette.toit = toitIds;
+      }
+    }
+    return {
+      name: entry.label,
+      checked: previousChecked.has(entry.label) ? previousChecked.get(entry.label) : true,
+      checkboxEl: null,
+      objectsByMaquette
+    };
+  });
+
+  niveaux.forEach((niveau) => {
     niveauxState.push(niveau);
 
     const li = document.createElement("li");
@@ -1067,34 +1229,43 @@ function renderNiveaux() {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = true;
+    checkbox.checked = niveau.checked;
     checkbox.addEventListener("change", () => {
       niveau.checked = checkbox.checked;
-      viewer.scene.setObjectsVisible(niveau.objectIds, checkbox.checked);
+      applyVisibility();
     });
     niveau.checkboxEl = checkbox;
 
     const name = document.createElement("button");
     name.type = "button";
     name.className = "niveau-name";
-    name.textContent = metaObject.name;
+    name.textContent = niveau.name;
     name.addEventListener("click", () => soloNiveau(niveau));
 
     li.append(checkbox, name);
     niveauxList.appendChild(li);
   });
+
+  applyVisibility();
 }
 
 function soloNiveau(target) {
   niveauxState.forEach((niveau) => {
-    const visible = niveau === target;
-    niveau.checked = visible;
-    niveau.checkboxEl.checked = visible;
-    viewer.scene.setObjectsVisible(niveau.objectIds, visible);
+    niveau.checked = niveau === target;
+    niveau.checkboxEl.checked = niveau.checked;
   });
+  applyVisibility();
 
   showSelection([["Niveau", target.name]], DOCS_BY_NIVEAU[target.name] || []);
 }
+
+maquettesResetBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  MAQUETTES.forEach((m) => { m.shown = true; });
+  applyVisibility();
+  renderMaquetteRows(maquettesList, MAQUETTES);
+});
 
 niveauxResetBtn.addEventListener("click", (e) => {
   e.preventDefault();
@@ -1102,8 +1273,8 @@ niveauxResetBtn.addEventListener("click", (e) => {
   niveauxState.forEach((niveau) => {
     niveau.checked = true;
     niveau.checkboxEl.checked = true;
-    viewer.scene.setObjectsVisible(niveau.objectIds, true);
   });
+  applyVisibility();
 });
 
 function openDocModal(doc) {
@@ -1185,12 +1356,26 @@ function showSelection(rows, docs) {
   }
 }
 
+// Remonte l'arbre spatial IFC (parent en parent) jusqu'a trouver l'etage
+// auquel l'element clique est officiellement rattache dans le fichier
+// source, independamment de sa position reelle dans l'espace (utile pour
+// reperer un element mal rattache par la maquette d'origine).
+function findNiveauIfc(objectId) {
+  let metaObject = viewer.metaScene.metaObjects[objectId];
+  while (metaObject) {
+    if (metaObject.type === "IfcBuildingStorey") return metaObject.name;
+    metaObject = metaObject.parent;
+  }
+  return null;
+}
+
 function showFiche(entity) {
   const metaObject = viewer.metaScene.metaObjects[entity.id];
   const rows = [
     ["Nom", metaObject ? metaObject.name : entity.id],
     ["Type IFC", metaObject ? metaObject.type : "n/a"],
-    ["Maquette", metaObject && metaObject.metaModels[0] ? labelForMaquette(metaObject.metaModels[0].id) : "n/a"]
+    ["Maquette", metaObject && metaObject.metaModels[0] ? labelForMaquette(metaObject.metaModels[0].id) : "n/a"],
+    ["Niveau (IFC)", findNiveauIfc(entity.id) || "n/a"]
   ];
   showSelection(rows, DOCS_BY_ELEMENT[entity.id] || []);
 }
@@ -1325,15 +1510,13 @@ const loadingCycleInterval = setInterval(() => {
 
 IfcAPI.Init().then(() => {
   const ifcLoader = new WebIFCLoaderPlugin(viewer, { WebIFC, IfcAPI });
+  const xktLoader = new XKTLoaderPlugin(viewer);
   let loadedCount = 0;
 
   MAQUETTES.forEach((maquette) => {
-    const model = ifcLoader.load({
-      id: maquette.id,
-      src: maquette.src,
-      excludeTypes: ["IfcSpace"],
-      edges: true
-    });
+    const model = maquette.format === "xkt"
+      ? xktLoader.load({ id: maquette.id, src: maquette.src, edges: true })
+      : ifcLoader.load({ id: maquette.id, src: maquette.src, excludeTypes: ["IfcSpace"], edges: true });
 
     maquette.model = model;
 
@@ -1346,9 +1529,12 @@ IfcAPI.Init().then(() => {
       (maquetteCountEls.get(maquette.id) || []).forEach((el) => { el.textContent = countText; });
       loadingOverlay.textContent = maquette.label + " chargée (" + countText + ")";
 
-      if (maquette.isReference) {
-        renderNiveaux();
-      }
+      // Rappelee a chaque chargement (pas seulement celui de la CEA, source
+      // des niveaux) : les 3 maquettes chargent en parallele, l'ordre reel
+      // d'arrivee n'est pas garanti. renderNiveaux() sort tout de suite si
+      // la CEA n'est pas encore prete, et se re-declenche correctement des
+      // qu'elle l'est, meme si une autre maquette a fini avant.
+      renderNiveaux();
 
       loadedCount++;
       if (loadedCount === MAQUETTES.length) {
