@@ -777,24 +777,16 @@ html, body {
   gap: 12px;
   margin: 26px 0 34px;
 }
-#landingMoreBtn, #landingDemoBtn {
+#landingMoreBtn {
   padding: 10px 22px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-}
-#landingMoreBtn {
   background: var(--accent);
   color: #0d1117;
   border: none;
 }
-#landingDemoBtn {
-  background: none;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-#landingDemoBtn:hover { border-color: var(--accent); color: var(--accent); }
 
 #presentationSidebar {
   flex: 0 0 260px;

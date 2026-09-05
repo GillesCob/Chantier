@@ -26,11 +26,9 @@ const presentationSectionsList = document.getElementById("presentationSectionsLi
 const presentationContent = document.getElementById("presentationContent");
 const navbarBrand = document.getElementById("navbarBrand");
 const landingMoreBtn = document.getElementById("landingMoreBtn");
-const landingDemoBtn = document.getElementById("landingDemoBtn");
 
 navbarBrand.addEventListener("click", () => activateView("landing"));
 landingMoreBtn.addEventListener("click", () => activateView("presentation"));
-landingDemoBtn.addEventListener("click", () => activateView("viewer"));
 
 const viewerWrap = document.getElementById("viewerWrap");
 const viewViewer = document.getElementById("view-viewer");
