@@ -84,26 +84,26 @@ const CONSTAT_REPONSE = [
   {
     num: "02",
     title: "Maquettes pas à jour",
-    probleme: "La dernière version de la maquette n'est pas toujours celle qui est consultée, avec le risque de travailler sur des données obsolètes.",
-    reponse: "Une seule maquette de référence est chargée à la demande, sans version à traquer ni copie locale obsolète."
+    probleme: "Les dernières versions des maquettes ne sont pas toujours celles qui sont consultées, avec le risque de travailler sur des données obsolètes.",
+    reponse: "Les dernières maquettes sont chargées par le BIM Manager ou automatiquement, les utilisateurs eux n'ont pas à s'en occuper et consulteront toujours les dernières versions à jour."
   },
   {
     num: "03",
     title: "Documents pas à jour",
-    probleme: "Les documents liés (plans, PV, photos) ne suivent pas toujours le rythme de la maquette : la GED se désynchronise du terrain.",
-    reponse: "Le document est rattaché directement à l'élément cliqué dans la maquette, comme un pointeur vers la GED existante, jamais comme une copie qui se désynchronise."
+    probleme: "Aucun lien n'existe aujourd'hui entre les documents de la GED et la maquette : impossible de retrouver facilement, en consultant un élément dans le viewer, les documents qui s'y rapportent.",
+    reponse: "Les documents de la GED sont rattachés directement aux éléments cliqués dans la maquette. On consulte ainsi toujours les versions à jour."
   },
   {
     num: "04",
     title: "Coût et complexité",
-    probleme: "Les licences Navisworks/Solibri sont payables au nombre d'utilisateurs, pensées pour un usage intensif quotidien, pas pour un usage ponctuel.",
-    reponse: "Il n'y a aucune licence par utilisateur. Des coûts réels demeurent (serveurs, stockage, maintenance, ajout de fonctionnalités), mais ils sont maîtrisés et pilotés en interne plutôt qu'imposés par l'abonnement d'un éditeur."
+    probleme: "Les licences des outils de consultation des maquettes (Navisworks, Solibri, ...) sont payables au nombre d'utilisateurs, pensées pour un usage intensif quotidien, pas pour un usage ponctuel.",
+    reponse: "Avec un outil développé en interne, il n'y a aucune licence par utilisateur, aucune limite. Des coûts réels demeurent cependant (serveurs, stockage, maintenance, ajout de fonctionnalités), mais ils sont maîtrisés et pilotés en interne plutôt qu'imposés par l'abonnement d'un éditeur."
   },
   {
     num: "05",
     title: "Peu utilisable sur chantier",
-    probleme: "L'outil n'est pas pensé pour une consultation rapide en mobilité, sur site.",
-    reponse: "C'est une application web légère, accessible depuis un simple navigateur, sans installation."
+    probleme: "Les logiciels actuels ne sont pas tous pensés pour une consultation rapide en mobilité, sur site (Dalux fait exception).",
+    reponse: "L'application proposée sera légère, accessible en ligne depuis un simple navigateur, sans installation."
   },
   {
     num: "06",
@@ -115,25 +115,25 @@ const CONSTAT_REPONSE = [
     num: "07",
     title: "Verrouillage éditeur",
     probleme: "Chaque outil impose son format propriétaire (Revit, Navisworks, Solibri, Dalux, BIM 360), sans fédération simple entre maquettes de disciplines différentes.",
-    reponse: "Tout est en IFC, un format ouvert standard, indépendant de l'outil de modélisation utilisé par chaque discipline. Combiné à des outils open source pour construire l'app elle-même, ça donne une indépendance totale, de bout en bout."
+    reponse: "Tout est en IFC, un format ouvert standard, indépendant de l'outil de modélisation utilisé par chaque discipline. Combiné à des outils open source pour construire l'app elle-même, ça donne une indépendance et une liberté totale, de bout en bout."
   },
   {
     num: "08",
     title: "Traçabilité perdue",
-    probleme: "Les décisions sont prises en réunion ou par mail, jamais rattachées à un point précis de la maquette, invérifiables a posteriori.",
-    reponse: "Chaque échange est rattaché à un point précis de la maquette et horodaté, pour une traçabilité native plutôt que reconstituée après coup."
+    probleme: "Les décisions prises en réunion ou par mail ne sont jamais rattachées à un point précis de la maquette. Les décisions sont invérifiables a posteriori.",
+    reponse: "Chaque échange est rattaché à un point précis de la maquette et horodaté : elle devient le référentiel central du projet, géométrie et échanges compris."
   },
   {
     num: "09",
     title: "Boucle terrain vers la maquette absente",
-    probleme: "Un écart constaté sur site (réalisé vs prévu) ne remonte nulle part vers le modèle : il repart en réunion ou par mail, comme les autres décisions perdues.",
-    reponse: "Une annotation ou une photo prise sur site est rattachée directement à un point de la maquette, et remonte immédiatement à l'interlocuteur choisi plutôt que d'être perdue en réunion."
+    probleme: "Sur site, qu'il s'agisse de remonter un écart (réalisé vs prévu) ou simplement de poser une question ciblée à la bonne personne ou au bon lot, rien ne relie ça à la maquette : ça repart en réunion ou par mail, comme les autres décisions perdues.",
+    reponse: "Une annotation ou une photo prise sur site est rattachée directement à un point de la maquette, et remonte immédiatement à l'interlocuteur choisi."
   },
   {
     num: "10",
     title: "Fonctionnalités jamais utilisées",
     probleme: "Les suites propriétaires embarquent de nombreuses fonctionnalités jamais utilisées sur le chantier, ni même par les études, mais facturées quand même.",
-    reponse: "On ne développe que ce dont on a vraiment besoin, à notre rythme, pas à celui d'un éditeur. Ce POC en est la preuve concrète, posé en quelques heures pour donner une idée de la puissance d'un outil réalisé en interne."
+    reponse: "On ne développe que ce dont on a vraiment besoin, à notre rythme, pas à celui d'un éditeur. Ce POC en est la preuve concrète, posé en un weekend pour donner une idée de la puissance d'un outil réalisé en interne."
   }
 ];
 
@@ -161,7 +161,7 @@ const PRESENTATION_SECTIONS = [
           </div>
         </div>`).join("")}
       </div>
-      <div class="constat-highlight"><strong>Ce que ça révèle</strong> : on ne parle pas d'un simple viewer de plus. Ces blocages dessinent le besoin d'un outil central dans les échanges du chantier, que ce soit sur le terrain, en études ou dans les bureaux d'études.</div>
+      <div class="constat-highlight">Ces blocages freinent aujourd'hui l'adoption et l'usage de la maquette sur le chantier. L'outil que je propose n'est pas un viewer de plus : chaque fonctionnalité répond à un problème vraiment rencontré sur le terrain, sur Mareterra ou ailleurs.</div>
       <div class="pres-card">
         <h3>Un usage majoritairement occasionnel des outils actuels</h3>
         <table class="pres-table">
@@ -174,25 +174,26 @@ const PRESENTATION_SECTIONS = [
           <tr><td>Artisans / compagnons</td><td>Ponctuel, ciblé</td><td>"Qu'est-ce qui est prévu ici" en lecture, zéro formation possible</td></tr>
           <tr><td>Bureau de contrôle</td><td>Ponctuel</td><td>Consultation pour ses propres vérifications réglementaires</td></tr>
         </table>
+        <p class="muted">Ces besoins sont trop hétérogènes pour un outil unique et figé. Un outil développé en interne peut au contraire proposer des fonctionnalités différentes selon les acteurs, sans imposer la même interface à tout le monde.</p>
       </div>
     `
   },
   {
     id: "propositions",
-    tag: "02 · Périmètre",
+    tag: "02 · Fonctionnalités construites ou prévues",
     body: `
-      <p class="pres-hint">Les fonctionnalités de base que j'envisage.</p>
+      <p class="pres-hint">Fonctionnalités déjà présentes dans ce POC (en vert) et celles prévues pour une vraie première version (en rouge).</p>
       <div class="constat-grid">
         <div class="constat-card is-demo"><span class="constat-num">01</span><h3>Partage &amp; consultation IFC</h3><p>On affiche la maquette IFC directement dans le navigateur, sans installation, avec un accès partagé entre intervenants.</p></div>
-        <div class="constat-card is-demo"><span class="constat-num">02</span><h3>Documents sur éléments</h3><p>Un document peut être rattaché à un élément précis de la maquette : un élément, un niveau, une pièce...</p></div>
+        <div class="constat-card is-demo"><span class="constat-num">02</span><h3>Documents sur éléments</h3><p>Un document sur la GED peut être rattaché à un élément précis de la maquette : un élément, un niveau, une pièce...</p></div>
         <div class="constat-card is-demo"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>La détection de collisions entre maquettes (structure contre toiture métallique dans cette démo) est suivie via des statuts, posés manuellement pour l'instant.</p></div>
-        <div class="constat-card is-demo"><span class="constat-num">04</span><h3>Commentaires collaboratifs</h3><p>On peut commenter la maquette à un endroit précis (à la BCF), aussi bien pour les échanges de conception que pour les remarques remontées du terrain. Le point est repéré par sa position exacte dans l'espace, avec une tentative de retrouver l'élément le plus proche si la maquette a changé.</p></div>
+        <div class="constat-card is-demo"><span class="constat-num">04</span><h3>Commentaires collaboratifs</h3><p>On peut commenter la maquette à un endroit précis via le format BCF, aussi bien pour les échanges de conception que pour les remarques remontées du terrain. Le point est repéré par sa position exacte dans l'espace, avec une tentative de retrouver l'élément le plus proche si la maquette a changé.</p></div>
         <div class="constat-card is-missing"><span class="constat-num">05</span><h3>Fonctionnalités et rapports adaptés au métier</h3><p>Des rapports (respect des conventions de modélisation, avancée des collisions sur une semaine...) sont envoyés automatiquement aux bons interlocuteurs selon le métier ou le lot concerné. D'autres fonctionnalités avancées, propres à un métier ou un lot, peuvent être développées sans les imposer à tout le monde.</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">06</span><h3>Application multiprojets</h3><p>Une même instance dessert plusieurs chantiers en parallèle, pas un outil à usage unique lié à un seul projet.</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">06</span><h3>Application multiprojets</h3><p>L'application développée pourra être déployée sur plusieurs chantiers en parallèle, plutôt que de rester un outil à usage unique lié à un seul projet.</p></div>
         <div class="constat-card is-missing"><span class="constat-num">07</span><h3>Compte utilisateur</h3><p>Chaque intervenant a son propre compte, avec ses informations personnelles et ses échanges rattachés à la maquette.</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">08</span><h3>Connexion directe à la GED</h3><p>Une connexion directe à la GED met les maquettes à jour automatiquement et garde les derniers documents accessibles, sans manipulation manuelle.</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">09</span><h3>Détection de collision automatisée</h3><p>La détection de collisions devient automatique, via des outils open source ou de l'IA, pour trier les conflits avant une revue humaine, au lieu d'une saisie manuelle (évolution de la fonctionnalité 03).</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">10</span><h3>Zones sans documentation</h3><p>Les éléments de la GED non rattachés à un élément de la maquette sont repérés, et inversement les zones de la maquette sans document associé. Pas construit dans ce POC, la façon de le faire n'est pas encore tranchée.</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">08</span><h3>Connexion directe à la GED</h3><p>Une connexion directe à la GED met les maquettes à jour automatiquement et garde les derniers documents accessibles, sans manipulation manuelle (évolution de la fonctionnalité 02).</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">09</span><h3>Détection de collision automatisée</h3><p>La détection de collisions devient automatique, via des outils open source ou de l'IA, pour trier les conflits avant une revue humaine, au lieu d'une saisie et revue 100% manuelle (évolution de la fonctionnalité 03).</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">10</span><h3>Zones sans documentation</h3><p>Les éléments de la GED non rattachés à un élément de la maquette sont repérés, et inversement les zones de la maquette sans document associé. Ça permet de repérer les trous de documentation avant qu'ils ne posent problème sur le terrain, plutôt que de les découvrir au moment où quelqu'un en a besoin. Pas construit dans ce POC, la façon de le faire n'est pas encore tranchée.</p></div>
       </div>
     `
   },
@@ -200,87 +201,90 @@ const PRESENTATION_SECTIONS = [
     id: "approche",
     tag: "03 · Choix techniques",
     body: `
-      <div class="pres-card"><h3>xeokit, une brique open source</h3><p>Ce POC est construit avec <strong>xeokit</strong>, une bibliothèque gratuite et open source pour afficher des maquettes IFC dans un navigateur, sans rien installer. Rien n'est imposé à l'écran par cet outil : c'est une base sur laquelle on construit soi-même l'interface, plutôt qu'un logiciel déjà tout fait et figé. Chaque fonctionnalité de ce POC (le viewer, les niveaux, les coupes, les collisions, les discussions...) est donc un vrai choix fait par Gilles, pas quelque chose d'imposé par l'outil : tout est personnalisable, du fonctionnement à l'apparence.</p></div>
+      <div class="pres-card"><h3>xeokit, une brique open source</h3><p>Ce POC est construit avec <strong>xeokit</strong>, une bibliothèque gratuite et open source pour afficher des maquettes IFC dans un navigateur, sans rien installer. Rien n'est imposé à l'écran par cet outil : c'est une base sur laquelle on construit soi-même l'interface, plutôt qu'un logiciel déjà tout fait et figé. Chaque fonctionnalité de ce POC (le viewer, les niveaux, les coupes, les collisions, les discussions...) est donc un vrai choix de ma part, pas quelque chose d'imposé par l'outil : tout est personnalisable, du fonctionnement à l'apparence.</p></div>
       <div class="pres-card">
         <h3>Se brancher sur la GED existante, pas la remplacer</h3>
         <p>Le principe est de se connecter à la GED déjà utilisée sur le chantier, pas de créer un nouvel outil central de plus. Un document lié à un élément de la maquette reste stocké dans la GED, l'app se contente d'y renvoyer, jamais de le copier. Les principaux outils de GED du marché (ex. Mezzoteam) proposent une API pour ça, cette connexion est donc envisageable.</p>
         <p class="muted">Ça reste à confirmer spécifiquement avec l'outil de GED réellement utilisé sur les chantiers d'IES avant tout engagement.</p>
       </div>
-      <div class="pres-card"><p>Ça ne remplace ni la <strong>GED du chantier</strong>, ni les <strong>outils de conception</strong> (Revit). En revanche, ça vise à remplacer les <strong>outils de coordination BIM</strong> propriétaires (Solibri, Navisworks, BIM 360, Dalux...), avec un usage plus simple et un coût plus maîtrisé, pensé pour l'usage occasionnel identifié plus haut.</p></div>
+      <div class="pres-card"><p>Ça ne remplace ni la <strong>GED du chantier</strong>, ni les <strong>outils de conception</strong> (Revit). En revanche, ça vise à remplacer les <strong>outils de coordination BIM</strong> propriétaires (Solibri, Navisworks, BIM 360, Dalux...), avec un usage plus simple et un coût plus maîtrisé, pensé pour un usage adapté aux utilisateurs identifiés dans la section 1.</p></div>
       <div class="pres-card">
         <h3>Un point technique à connaître</h3>
-        <p>Le problème de départ : quand un élément de la maquette est supprimé puis remodélisé, même à l'identique, il perd son identifiant technique d'origine. Si on ne suit un commentaire ou une collision que par cet identifiant, le lien avec l'élément est perdu. C'est déjà en partie réglé dans ce POC en se basant aussi sur la position exacte de l'élément dans l'espace, pas seulement sur son identifiant. Piste d'amélioration envisageable : des audits automatiques pourraient repérer ces cas précis et les corriger.</p>
+        <p>Le problème de départ : quand un élément de la maquette est supprimé puis remodélisé, même à l'identique, il perd son identifiant technique d'origine. Si on ne suit un commentaire ou une collision que par cet identifiant, le lien avec l'élément est perdu. C'est déjà en partie réglé dans ce POC en se basant aussi sur la position exacte de l'élément dans l'espace, pas seulement sur son identifiant. Ce cas devrait d'ailleurs normalement être évité en amont : les conventions de modélisation imposent généralement de mettre à jour un élément existant plutôt que de le supprimer puis le redessiner. Piste d'amélioration envisageable malgré tout : des audits automatiques pourraient repérer ces cas précis et les corriger.</p>
       </div>
-    `
-  },
-  {
-    id: "cout",
-    tag: "04 · Coût",
-    body: `
-      <div class="pres-card"><p>Les tarifs publics indicatifs ci-dessous ont été relevés en 2026, à prendre avec beaucoup de précaution. Un grand groupe comme Bouygues négocie ses propres contrats-cadres avec Autodesk et consorts (remises de volume, accords pluriannuels), à des prix probablement très différents des tarifs publics ci-dessous. Cette comparaison sert à situer un ordre de grandeur, pas à chiffrer un vrai contrat.</p></div>
-      <div class="pres-card">
-        <h3>Tarifs indicatifs des outils propriétaires</h3>
-        <table class="pres-table">
-          <tr><th>Outil</th><th>Tarif indicatif</th><th>Couvre</th></tr>
-          <tr><td>Solibri Office</td><td>Environ 1 400 à 2 800 € / utilisateur / an selon palier (Essential à Premium)</td><td>Coordination BIM, détection de conflits</td></tr>
-          <tr><td>Autodesk Construction Cloud</td><td>Environ 500 à 2 000 € / utilisateur / an selon module (accès de base à Autodesk Build)</td><td>Gestion documentaire, collaboration terrain</td></tr>
-          <tr><td>BIM Collaborate Pro</td><td>Environ 1 200 € / utilisateur / an</td><td>Coordination de maquettes</td></tr>
-          <tr><td>Dalux</td><td>Tarifs non publics, sur devis (viewer de base gratuit)</td><td>Consultation terrain, gestion documentaire</td></tr>
-        </table>
-      </div>
-      <div class="pres-card">
-        <h3>Ordre de grandeur sur un chantier de la taille de celui d'Eric</h3>
-        <p>Hypothèse basse sur un chantier de grande envergure (complexe sportif, plusieurs corps de métier, dizaines d'intervenants réguliers) : 25 comptes payants sur un outil de coordination type Solibri (environ 2 000 €/an chacun) plus 60 comptes sur une plateforme documentaire type Autodesk Construction Cloud (environ 500 €/an chacun) représentent, sur la base des tarifs publics, environ <strong>80 000 € par an</strong>. Cette estimation s'appuie sur des tarifs publics, pas sur les contrats réels d'un grand groupe : elle est probablement surestimée par rapport à ce que paie réellement un acteur de la taille de Bouygues, à prendre comme repère théorique uniquement.</p>
-      </div>
-      <div class="pres-card">
-        <h3>Le coût réel d'un outil maison, sans optimisme excessif</h3>
-        <p>Un outil maison n'est pas gratuit. Des coûts réels sont à prévoir : hébergement (serveurs), stockage des maquettes (volumineuses, avec historique), sauvegardes, et surtout maintenance et ajout de fonctionnalités dans la durée. L'ordre de grandeur pour l'hébergement et le stockage sur un usage multi-chantier est de quelques milliers d'euros par an, pas des dizaines de milliers. Le développement d'une vraie version (au-delà de ce POC) reste le poste le plus lourd et le plus incertain à ce stade.</p>
-        <p class="muted">Point de vigilance honnête : plus l'outil gagne d'utilisateurs et de chantiers, plus le maintenir seul devient risqué (support, bugs, sécurité, disponibilité). C'est viable en solo sur un périmètre limité, un chantier pilote avec un nombre restreint d'utilisateurs. Au-delà, ça suppose une vraie équipe derrière, pas un développeur unique indéfiniment.</p>
-        <p class="muted">Conséquence directe : l'outil doit grossir progressivement, pas être déployé d'un coup sur un chantier de grande envergure. La trajectoire envisagée est un usage interne à IES d'abord, puis un déploiement élargi par étapes, au rythme où le développement et la maintenance peuvent suivre.</p>
-      </div>
-      <div class="pres-callout"><strong>Ce qui change structurellement</strong> : le coût d'un outil maison ne dépend pas du nombre de comptes. Sur un chantier avec beaucoup de profils occasionnels (cf tableau du Constat), c'est ce qui fait la différence, pas la gratuité.</div>
     `
   },
   {
     id: "cette-demo",
-    tag: "05 · Démo vs vision réelle",
+    tag: "04 · Démo vs vision réelle",
     body: `
+      <p class="pres-hint">Point par point, ce que cette démo simplifie par rapport à une vraie version.</p>
       <div class="constat-grid">
-        <div class="constat-card"><span class="constat-num">01</span><h3>Maquette</h3><p>C'est une ressource pédagogique eduscol en libre accès, pas une vraie maquette de chantier. Elle est chargée directement dans le navigateur sans conversion, ce qui reste viable ici grâce à son poids réduit. En réel, une vraie maquette (souvent bien plus lourde) nécessiterait une conversion en format compressé (.xkt) pour rester fluide.</p></div>
-        <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Cette démo n'est pas responsive, pensée pour un écran d'ordinateur. Un usage sur chantier suppose une consultation sur mobile ou tablette, ce qui n'est pas traité dans ce POC.</p></div>
+        <div class="constat-card"><span class="constat-num">01</span><h3>Maquettes</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier. Elles sont chargées directement dans le navigateur sans conversion, ce qui reste viable ici grâce à leur poids réduit. En réel, de vraies maquettes (souvent bien plus lourdes) nécessiteraient une conversion en format compressé (.xkt) pour rester fluides.</p></div>
+        <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Cette démo n'est pas responsive mais pensée pour un écran d'ordinateur. Un usage sur chantier suppose une consultation sur mobile ou tablette, ce qui n'est pas traité dans ce POC.</p></div>
         <div class="constat-card"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>Les statuts (nouveau/confirmé/écarté) sont posés à la main sur 2 à 3 clashs simulés. En réel, un moteur de détection géométrique combiné à un historique de statut piloté par coordonnée absolue permettrait de ne réexaminer que les nouvelles détections à chaque mise à jour de maquette.</p></div>
-        <div class="constat-card"><span class="constat-num">04</span><h3>Page Collision</h3><p>L'organisation actuelle enchaîne récap des détections, détail par détection, puis clash et discussion. Elle pourra être revue pour s'adapter aux besoins réels une fois discutée avec Eric, pas figée par cette démo.</p></div>
+        <div class="constat-card"><span class="constat-num">04</span><h3>Page Collision</h3><p>L'organisation actuelle affiche d'abord la liste des comparaisons faites entre deux maquettes (ex. Structure vs Toiture métallique), puis, dans chacune, la liste des conflits trouvés ; cliquer sur un conflit précis en affiche le détail et la discussion. C'est une fonctionnalité à discuter afin de mettre en place le besoin réel, pas figée par cette démo.</p></div>
         <div class="constat-card"><span class="constat-num">05</span><h3>Utilisateur</h3><p>La page Discussions est filtrée sur un utilisateur simulé fixe. Il n'y a pas de vraie gestion d'utilisateurs ni d'authentification dans ce POC, prévue uniquement pour une vraie version.</p></div>
         <div class="constat-card"><span class="constat-num">06</span><h3>Droits d'accès</h3><p>Aucun écran ne permet à un admin de projet de gérer qui a accès à quoi, qui a le droit de commenter, ou l'appartenance à tel ou tel groupe. Le besoin est identifié, mais ce n'est pas construit dans ce POC.</p></div>
         <div class="constat-card"><span class="constat-num">07</span><h3>Discussions, image "Avant"</h3><p>C'est un placeholder texte pour l'instant, pas une vraie capture, faute d'historique réel à montrer sur des fils simulés. En réel, ce serait une vraie capture d'écran de la maquette au moment de la création du fil.</p></div>
-        <div class="constat-card"><span class="constat-num">08</span><h3>Zones sans documentation</h3><p>Ce n'est pas construit dans ce POC, faute de données de zones réelles dans la maquette d'exemple. La mise en œuvre n'est pas encore tranchée (repérage à double sens GED/maquette, cf section Propositions).</p></div>
+        <div class="constat-card"><span class="constat-num">08</span><h3>Zones sans documentation</h3><p>Ce n'est pas construit dans ce POC, faute de données de zones réelles dans la maquette d'exemple. La mise en œuvre n'est pas encore tranchée (repérage à double sens GED/maquette, cf section 2, carte 10).</p></div>
         <div class="constat-card"><span class="constat-num">09</span><h3>Coupes</h3><p>Seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</p></div>
-        <div class="constat-card"><span class="constat-num">10</span><h3>Mise à jour de la maquette</h3><p>Dans ce POC, la maquette de référence est fixe. En réel, ça reste le rôle du BIM Manager du chantier de la tenir à jour. Une piste d'automatisation serait aussi à étudier : la prise en compte automatique d'une nouvelle maquette déposée sur la GED.</p></div>
+        <div class="constat-card"><span class="constat-num">10</span><h3>Mise à jour de la maquette</h3><p>Dans ce POC, la maquette de référence est fixe. En réel, ça reste le rôle du BIM Manager du chantier de la tenir à jour. Une piste d'automatisation serait aussi à étudier : la prise en compte automatique d'une nouvelle maquette déposée sur la GED par un BE par exemple.</p></div>
       </div>
     `
   }
 ];
 
+// Sous-onglet actif retenu au rechargement (meme principe que l'onglet
+// principal, cf plus bas "chantier-active-view") : le hash #presentation/<id>
+// prime une fois (lien direct), sinon le dernier consulte en localStorage.
+function getInitialPresentationSectionId() {
+  const hashParts = location.hash.replace("#", "").split("/");
+  if (hashParts[0] === "presentation" && hashParts[1] && PRESENTATION_SECTIONS.some((s) => s.id === hashParts[1])) {
+    return hashParts[1];
+  }
+  try {
+    const saved = localStorage.getItem("chantier-presentation-section");
+    if (saved && PRESENTATION_SECTIONS.some((s) => s.id === saved)) {
+      return saved;
+    }
+  } catch (e) {
+    // localStorage indisponible, on reste sur la 1ere section par defaut.
+  }
+  return PRESENTATION_SECTIONS[0].id;
+}
+
 function renderPresentation() {
   presentationSectionsList.innerHTML = "";
   presentationContent.innerHTML = "";
 
-  PRESENTATION_SECTIONS.forEach((section, i) => {
+  const initialSectionId = getInitialPresentationSectionId();
+
+  PRESENTATION_SECTIONS.forEach((section) => {
+    const isActive = section.id === initialSectionId;
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "pres-section-item" + (i === 0 ? " active" : "");
+    btn.className = "pres-section-item" + (isActive ? " active" : "");
     btn.dataset.id = section.id;
     btn.textContent = section.tag;
     btn.addEventListener("click", () => {
       document.querySelectorAll(".pres-section-item").forEach((b) => b.classList.toggle("active", b === btn));
       document.querySelectorAll(".pres-panel").forEach((p) => p.classList.toggle("active", p.dataset.id === section.id));
+      try {
+        localStorage.setItem("chantier-presentation-section", section.id);
+      } catch (e) {
+        // localStorage indisponible, pas bloquant.
+      }
+      if (history.replaceState) {
+        history.replaceState(null, "", "#presentation/" + section.id);
+      }
     });
     li.appendChild(btn);
     presentationSectionsList.appendChild(li);
 
     const panel = document.createElement("div");
-    panel.className = "pres-panel" + (i === 0 ? " active" : "");
+    panel.className = "pres-panel" + (isActive ? " active" : "");
     panel.dataset.id = section.id;
     panel.innerHTML = `
       <h2>${section.tag}</h2>

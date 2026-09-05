@@ -842,16 +842,6 @@ html, body {
 .pres-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
 .pres-card li { margin-bottom: 6px; }
 
-.pres-callout {
-  background: rgba(88, 166, 255, 0.1);
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 12.5px;
-  line-height: 1.55;
-  margin: 10px 0 14px;
-}
-.pres-callout strong { color: var(--accent); }
-
 .pres-demo-vs-reel {
   border-left: 2px solid var(--accent);
   padding-left: 12px;
@@ -895,7 +885,7 @@ html, body {
 
 /* Cartes retournables (section Constat & reponse) : le constat en face
    avant, la reponse en face arriere, retournee au clic. */
-.flip-card { height: 220px; cursor: pointer; perspective: 1200px; }
+.flip-card { height: 280px; cursor: pointer; perspective: 1200px; }
 .flip-card-inner {
   position: relative;
   width: 100%;
@@ -938,7 +928,6 @@ html, body {
   line-height: 1.6;
   margin: 4px 0 22px;
 }
-.constat-highlight strong { color: var(--accent); }
 
 .pres-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .pres-table th, .pres-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
