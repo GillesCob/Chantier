@@ -89,6 +89,12 @@ const newDiscussionRecipients = document.getElementById("newDiscussionRecipients
 // la construction du POC (cf MOC-chantier.md).
 // 10 paires constat/reponse affichees en cartes retournables (flip) dans la
 // section "01 - Constat & reponse" : cliquer une carte affiche sa reponse.
+// Icone posee en bas a droite de la face avant d'une carte retournable
+// (Constat & reponse, Fonctionnalites) : simple indice visuel "ca se
+// retourne", pas un bouton (pointer-events: none, cf CSS), le clic reste
+// gere par la carte entiere.
+const FLIP_HINT_ICON = `<svg class="flip-hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>`;
+
 const CONSTAT_REPONSE = [
   {
     num: "01",
@@ -130,7 +136,7 @@ const CONSTAT_REPONSE = [
     num: "07",
     title: "Verrouillage éditeur",
     probleme: "Chaque outil impose son format propriétaire (Revit, Navisworks, Solibri, Dalux, BIM 360), sans fédération simple entre maquettes de disciplines différentes.",
-    reponse: "Tout est en IFC, un format ouvert standard, indépendant de l'outil de modélisation utilisé par chaque discipline. Combiné à des outils open source pour construire l'app elle-même, ça donne une indépendance et une liberté totale, de bout en bout."
+    reponse: "Tout est en IFC, un format ouvert standard : peu importe l'outil de modélisation utilisé par chaque discipline (Revit, Blender ou un autre), tant qu'il exporte de l'IFC, l'outil fonctionne en aval, sans rien lui imposer. Ça ne remplace ni la GED du chantier ni les outils de conception : ça vise à remplacer les outils de coordination BIM propriétaires (Solibri, Navisworks, BIM 360, Dalux...), avec un usage plus simple et un coût plus maîtrisé."
   },
   {
     num: "08",
@@ -166,6 +172,7 @@ const PRESENTATION_SECTIONS = [
               <h3>${item.title}</h3>
               <p>${item.probleme}</p>
               <span class="flip-card-footer">Constat</span>
+              ${FLIP_HINT_ICON}
             </div>
             <div class="flip-card-face flip-card-back constat-card is-demo">
               <span class="constat-num">${item.num}</span>
@@ -199,60 +206,45 @@ const PRESENTATION_SECTIONS = [
     id: "propositions",
     tag: "02 · Fonctionnalités construites ou prévues",
     body: `
-      <p class="pres-hint">Le catalogue des fonctionnalités : ce qui est déjà démontrable dans ce POC (en vert) et ce qui est envisagé pour une vraie première version (en rouge). Dans quel ordre les construire, et pour qui, c'est l'objet de la section 05.</p>
+      <p class="pres-hint">Le catalogue des fonctionnalités : ce qui est déjà démontrable dans ce POC (en vert, cliquer pour voir le raccourci pris dans cette démo) et ce qui est envisagé pour une vraie première version (en rouge). Dans quel ordre les construire, et pour qui, c'est l'objet de la section 03.</p>
       <div class="constat-grid">
-        <div class="constat-card is-demo"><span class="constat-num">01</span><h3>Partage &amp; consultation IFC</h3><p>On affiche la maquette IFC directement dans le navigateur, sans installation, avec un accès partagé entre intervenants.</p></div>
+        <div class="flip-card" tabindex="0" role="button" aria-label="Partage et consultation IFC, cliquer pour voir le raccourci pris dans cette démo">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-front constat-card is-demo"><span class="constat-num">01</span><h3>Partage &amp; consultation IFC</h3><p>On affiche la maquette IFC directement dans le navigateur, sans installation, avec un accès partagé entre intervenants.</p>${FLIP_HINT_ICON}</div>
+            <div class="flip-card-face flip-card-back constat-card"><span class="constat-num">01</span><h3>Partage &amp; consultation IFC</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier, chargées directement sans conversion grâce à leur poids réduit. Pour une maquette plus lourde, la conversion en format compressé (.xkt) a été testée dans ce POC (visible sous le nom Maquette CEA) : le fichier passe de 27 Mo à 8,6 Mo.</p><span class="flip-card-footer">Raccourci pris dans cette démo</span></div>
+          </div>
+        </div>
         <div class="constat-card is-demo"><span class="constat-num">02</span><h3>Documents sur éléments</h3><p>Un document sur la GED peut être rattaché à un élément précis de la maquette : un élément, un niveau, une pièce...</p></div>
-        <div class="constat-card is-demo"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>La détection de collisions entre maquettes (structure contre toiture métallique dans cette démo) est suivie via des statuts, posés manuellement pour l'instant.</p></div>
-        <div class="constat-card is-demo"><span class="constat-num">04</span><h3>Commentaires collaboratifs</h3><p>On peut commenter la maquette à un endroit précis via le format BCF, aussi bien pour les échanges de conception que pour les remarques remontées du terrain. Le point est repéré par sa position exacte dans l'espace, avec une tentative de retrouver l'élément le plus proche si la maquette a changé.</p></div>
+        <div class="flip-card" tabindex="0" role="button" aria-label="Détection de conflits, cliquer pour voir le raccourci pris dans cette démo">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-front constat-card is-demo"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>La détection de collisions entre maquettes (structure contre toiture métallique dans cette démo) est suivie via des statuts, posés manuellement pour l'instant.</p>${FLIP_HINT_ICON}</div>
+            <div class="flip-card-face flip-card-back constat-card"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>Les statuts (nouveau/confirmé/écarté) sont posés à la main sur 2 à 3 clashs simulés, pas de vrai moteur de détection géométrique. L'organisation de la page (liste des comparaisons entre maquettes, puis détail par conflit) reste aussi à confirmer avec le besoin réel, pas figée par cette démo.</p><span class="flip-card-footer">Raccourci pris dans cette démo</span></div>
+          </div>
+        </div>
+        <div class="flip-card" tabindex="0" role="button" aria-label="Commentaires collaboratifs, cliquer pour voir le raccourci pris dans cette démo">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-front constat-card is-demo"><span class="constat-num">04</span><h3>Commentaires collaboratifs</h3><p>On peut commenter la maquette à un endroit précis via le format BCF, aussi bien pour les échanges de conception que pour les remarques remontées du terrain. Le point est repéré par sa position exacte dans l'espace, avec une tentative de retrouver l'élément le plus proche si la maquette a changé.</p>${FLIP_HINT_ICON}</div>
+            <div class="flip-card-face flip-card-back constat-card"><span class="constat-num">04</span><h3>Commentaires collaboratifs</h3><p>La page Discussions est filtrée sur un utilisateur simulé fixe, sans vraie gestion de comptes ni authentification. L'image "Avant" d'un fil est un texte de remplacement pour l'instant, pas une vraie capture, faute d'historique réel sur des fils simulés.</p><span class="flip-card-footer">Raccourci pris dans cette démo</span></div>
+          </div>
+        </div>
         <div class="constat-card is-missing"><span class="constat-num">05</span><h3>Fonctionnalités et rapports adaptés au métier</h3><p>Des rapports (respect des conventions de modélisation, avancée des collisions sur une semaine...) sont envoyés automatiquement aux bons interlocuteurs selon le métier ou le lot concerné. D'autres fonctionnalités avancées, propres à un métier ou un lot, peuvent être développées sans les imposer à tout le monde.</p></div>
         <div class="constat-card is-missing"><span class="constat-num">06</span><h3>Application multiprojets</h3><p>L'application développée pourra être déployée sur plusieurs chantiers en parallèle, plutôt que de rester un outil à usage unique lié à un seul projet.</p></div>
         <div class="constat-card is-missing"><span class="constat-num">07</span><h3>Compte utilisateur</h3><p>Chaque intervenant a son propre compte, avec ses informations personnelles et ses échanges rattachés à la maquette.</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">08</span><h3>Connexion directe à la GED</h3><p>Une connexion directe à la GED met les maquettes à jour automatiquement et garde les derniers documents accessibles, sans manipulation manuelle (évolution de la fonctionnalité 02).</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">09</span><h3>Détection de collision automatisée</h3><p>La détection de collisions devient automatique, via des outils open source ou de l'IA, pour trier les conflits avant une revue humaine, au lieu d'une saisie et revue 100% manuelle (évolution de la fonctionnalité 03).</p></div>
-        <div class="constat-card is-missing"><span class="constat-num">10</span><h3>Zones sans documentation</h3><p>Les éléments de la GED non rattachés à un élément de la maquette sont repérés, et inversement les zones de la maquette sans document associé. Ça permet de repérer les trous de documentation avant qu'ils ne posent problème sur le terrain, plutôt que de les découvrir au moment où quelqu'un en a besoin. Pas construit dans ce POC, la façon de le faire n'est pas encore tranchée.</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">08</span><h3>Droits d'accès</h3><p>Un admin de projet gère qui a accès à quoi : qui a le droit de commenter, l'appartenance à tel ou tel groupe. Pas construit dans ce POC.</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">09</span><h3>Connexion directe à la GED</h3><p>Une connexion directe à la GED met les maquettes à jour automatiquement et garde les derniers documents accessibles, sans manipulation manuelle (évolution de la fonctionnalité 02). Dans ce POC, la maquette de référence est fixe : en réel, ça reste le rôle du BIM Manager de la tenir à jour, ou une future connexion GED pourrait le faire automatiquement.</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">10</span><h3>Détection de collision automatisée</h3><p>La détection de collisions devient automatique, via des outils open source ou de l'IA, pour trier les conflits avant une revue humaine, au lieu d'une saisie et revue 100% manuelle (évolution de la fonctionnalité 03).</p></div>
+        <div class="constat-card is-missing"><span class="constat-num">11</span><h3>Zones sans documentation</h3><p>Les éléments de la GED non rattachés à un élément de la maquette sont repérés, et inversement les zones de la maquette sans document associé. Ça permet de repérer les trous de documentation avant qu'ils ne posent problème sur le terrain, plutôt que de les découvrir au moment où quelqu'un en a besoin. Pas construit dans ce POC, la façon de le faire n'est pas encore tranchée.</p></div>
       </div>
-    `
-  },
-  {
-    id: "approche",
-    tag: "03 · Choix techniques",
-    body: `
-      <div class="pres-card"><h3>xeokit, une brique open source</h3><p>Ce POC est construit avec <strong>xeokit</strong>, une bibliothèque gratuite et open source pour afficher des maquettes IFC dans un navigateur, sans rien installer. Rien n'est imposé à l'écran par cet outil : c'est une base sur laquelle on construit soi-même l'interface, plutôt qu'un logiciel déjà tout fait et figé. Chaque fonctionnalité de ce POC (le viewer, les niveaux, les coupes, les collisions, les discussions...) est donc un vrai choix de ma part, pas quelque chose d'imposé par l'outil : tout est personnalisable, du fonctionnement à l'apparence.</p></div>
       <div class="pres-card">
-        <h3>Se brancher sur la GED existante, pas la remplacer</h3>
-        <p>Le principe est de se connecter à la GED déjà utilisée sur le chantier, pas de créer un nouvel outil central de plus. Un document lié à un élément de la maquette reste stocké dans la GED, l'app se contente d'y renvoyer, jamais de le copier. Les principaux outils de GED du marché (ex. Mezzoteam) proposent une API pour ça, cette connexion est donc envisageable.</p>
-        <p class="muted">Ça reste à confirmer spécifiquement avec l'outil de GED réellement utilisé sur les chantiers d'IES avant tout engagement.</p>
-      </div>
-      <div class="pres-card"><p>Ça ne remplace ni la <strong>GED du chantier</strong>, ni les <strong>outils de conception</strong> (Revit). En revanche, ça vise à remplacer les <strong>outils de coordination BIM</strong> propriétaires (Solibri, Navisworks, BIM 360, Dalux...), avec un usage plus simple et un coût plus maîtrisé, pensé pour un usage adapté aux utilisateurs identifiés dans la section 1.</p></div>
-      <div class="pres-card">
-        <h3>Un point technique à connaître</h3>
-        <p>Le problème de départ : quand un élément de la maquette est supprimé puis remodélisé, même à l'identique, il perd son identifiant technique d'origine. Si on ne suit un commentaire ou une collision que par cet identifiant, le lien avec l'élément est perdu. C'est déjà en partie réglé dans ce POC en se basant aussi sur la position exacte de l'élément dans l'espace, pas seulement sur son identifiant. Ce cas devrait d'ailleurs normalement être évité en amont : les conventions de modélisation imposent généralement de mettre à jour un élément existant plutôt que de le supprimer puis le redessiner. Piste d'amélioration envisageable malgré tout : des audits automatiques pourraient repérer ces cas précis et les corriger.</p>
-      </div>
-    `
-  },
-  {
-    id: "cette-demo",
-    tag: "04 · Démo vs vision réelle",
-    body: `
-      <p class="pres-hint">Point par point, ce que cette démo simplifie par rapport à une vraie version.</p>
-      <div class="constat-grid">
-        <div class="constat-card"><span class="constat-num">01</span><h3>Maquettes</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier. Elles sont chargées directement dans le navigateur sans conversion, ce qui reste viable ici grâce à leur poids réduit. Pour une vraie maquette plus lourde, la conversion en format compressé (.xkt) a été testée dans ce POC (visible dans le viewer sous le nom Maquette CEA) : le fichier passe de 27 Mo à 8,6 Mo, pensé pour charger plus vite qu'un IFC brut de cette taille.</p></div>
-        <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Un usage sur chantier suppose une consultation sur mobile ou tablette. L'adaptation à ces écrans reste volontairement basique dans ce POC, le temps de valider le reste : elle serait bien plus poussée sur une vraie version mise en prod.</p></div>
-        <div class="constat-card"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>Les statuts (nouveau/confirmé/écarté) sont posés à la main sur 2 à 3 clashs simulés. En réel, un moteur de détection géométrique combiné à un historique de statut piloté par coordonnée absolue permettrait de ne réexaminer que les nouvelles détections à chaque mise à jour de maquette.</p></div>
-        <div class="constat-card"><span class="constat-num">04</span><h3>Page Collision</h3><p>L'organisation actuelle affiche d'abord la liste des comparaisons faites entre deux maquettes (ex. Structure vs Toiture métallique), puis, dans chacune, la liste des conflits trouvés ; cliquer sur un conflit précis en affiche le détail et la discussion. C'est une fonctionnalité à discuter afin de mettre en place le besoin réel, pas figée par cette démo.</p></div>
-        <div class="constat-card"><span class="constat-num">05</span><h3>Utilisateur</h3><p>La page Discussions est filtrée sur un utilisateur simulé fixe. Il n'y a pas de vraie gestion d'utilisateurs ni d'authentification dans ce POC, prévue uniquement pour une vraie version.</p></div>
-        <div class="constat-card"><span class="constat-num">06</span><h3>Droits d'accès</h3><p>Aucun écran ne permet à un admin de projet de gérer qui a accès à quoi, qui a le droit de commenter, ou l'appartenance à tel ou tel groupe. Le besoin est identifié, mais ce n'est pas construit dans ce POC.</p></div>
-        <div class="constat-card"><span class="constat-num">07</span><h3>Discussions, image "Avant"</h3><p>C'est un placeholder texte pour l'instant, pas une vraie capture, faute d'historique réel à montrer sur des fils simulés. En réel, ce serait une vraie capture d'écran de la maquette au moment de la création du fil.</p></div>
-        <div class="constat-card"><span class="constat-num">08</span><h3>Zones sans documentation</h3><p>Ce n'est pas construit dans ce POC, faute de données de zones réelles dans la maquette d'exemple. La mise en œuvre n'est pas encore tranchée (repérage à double sens GED/maquette, cf section 2, carte 10).</p></div>
-        <div class="constat-card"><span class="constat-num">09</span><h3>Coupes</h3><p>Seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</p></div>
-        <div class="constat-card"><span class="constat-num">10</span><h3>Mise à jour de la maquette</h3><p>Dans ce POC, la maquette de référence est fixe. En réel, ça reste le rôle du BIM Manager du chantier de la tenir à jour. Une piste d'automatisation serait aussi à étudier : la prise en compte automatique d'une nouvelle maquette déposée sur la GED par un BE par exemple.</p></div>
+        <h3>Limites générales de ce POC</h3>
+        <p>Affichage mobile : un usage sur chantier suppose une consultation sur mobile ou tablette. L'adaptation à ces écrans reste volontairement basique dans ce POC, le temps de valider le reste ; elle serait bien plus poussée sur une vraie version mise en prod.</p>
+        <p>Coupes : seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</p>
       </div>
     `
   },
   {
     id: "roadmap",
-    tag: "05 · Étapes pour développer l'outil",
+    tag: "03 · Étapes pour développer l'outil",
     body: `
       <p class="pres-hint">Pas le catalogue des fonctionnalités (cf section 02), mais le processus : dans quel ordre les construire, et pour qui à chaque étape. Le plan proposé n'est pas figé : l'ordre et le contenu de chaque étape restent à discuter selon les priorités d'IES. L'objectif ici est de rendre visible tout le chemin entre ce POC et un outil utilisé par un chantier entier.</p>
       <div class="constat-grid">

@@ -1163,6 +1163,17 @@ html, body {
 }
 .flip-card-back .flip-card-footer { color: #3fb950; }
 
+.flip-hint-icon {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 @keyframes flip-peek {
   0%, 100% { transform: rotateY(0deg); }
   50% { transform: rotateY(180deg); }
