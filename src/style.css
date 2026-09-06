@@ -895,7 +895,7 @@ html, body {
 /* Inutile sur desktop : l'onglet "Discussions" de la navbar, toujours
    visible, ramene deja a la liste (cf reset dans le handler de clic navbar).
    Garde uniquement sur mobile, ou la navbar est derriere le hamburger. */
-#discussionsBackBtn { display: none; align-self: flex-start; margin: 16px 0; }
+#discussionsBackBtn { display: none; align-self: flex-start; margin: 12px 0 0; }
 @media (max-width: 768px) {
   #discussionsBackBtn { display: inline-block; }
 }
@@ -998,6 +998,7 @@ html, body {
 }
 
 .landing-part { margin-bottom: 40px; }
+.landing-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0 48px; }
 .landing-part-eyebrow {
   margin: 0 0 14px;
   font-size: 11.5px;
