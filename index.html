@@ -182,7 +182,7 @@
               <button type="button" id="collisionInfoPanelToggle" aria-label="Afficher les maquettes et collisions">☰ Infos</button>
             </div>
             <div id="collisionDiscussion" hidden>
-              <h3>Discussion</h3>
+              <h3 id="collisionDiscussionTitle" title="Cliquer pour voir le titre complet">Discussion</h3>
               <ul id="discussionMessages"></ul>
               <form id="discussionReplyForm" hidden>
                 <textarea id="discussionReplyInput" placeholder="Répondre..." rows="2"></textarea>
@@ -222,7 +222,6 @@
         <div id="discussionsDetailPane" hidden>
           <div id="discussionsDetailContent">
             <button type="button" id="discussionsBackBtn" class="reset-btn">← Discussions</button>
-            <h3 id="discussionsDetailTitle"></h3>
 
             <div id="threadVisualWrap">
               <div id="threadVisualToggle">

@@ -75,7 +75,7 @@ const discussionsThreadsList = document.getElementById("discussionsThreadsList")
 const discussionsThreadsEmpty = document.getElementById("discussionsThreadsEmpty");
 const discussionsListPane = document.getElementById("discussionsListPane");
 const discussionsDetailPane = document.getElementById("discussionsDetailPane");
-const discussionsDetailTitle = document.getElementById("discussionsDetailTitle");
+const collisionDiscussionTitle = document.getElementById("collisionDiscussionTitle");
 const discussionsBackBtn = document.getElementById("discussionsBackBtn");
 const threadSnapshotPane = document.getElementById("threadSnapshotPane");
 const threadViewerPane = document.getElementById("threadViewerPane");
@@ -842,7 +842,6 @@ let currentThread = null;
 function openThreadDetail(thread) {
   discussionsListPane.hidden = true;
   discussionsDetailPane.hidden = false;
-  discussionsDetailTitle.textContent = thread.zone;
   currentThread = thread;
   setThreadVisualMode("apres", thread);
 
@@ -1195,6 +1194,13 @@ function showThreadDiscussion(thread) {
   currentDiscussionThread = thread;
   const isOpen = isThreadOpen(thread);
 
+  // Titre du fil a la place du generique "Discussion" (Collision et
+  // Discussions partagent tous les deux un champ "zone" sur leur thread).
+  // Retronque par CSS (text-overflow), classe "expanded" retiree a chaque
+  // nouveau fil pour ne pas garder un vieux deplie.
+  collisionDiscussionTitle.textContent = thread.zone;
+  collisionDiscussionTitle.classList.remove("expanded");
+
   if (thread.discussion.length === 0 && !isOpen) {
     collisionDiscussion.hidden = true;
     return;
@@ -1212,6 +1218,12 @@ function selectClash(clash) {
   recenterTarget = () => flyToClash(clash);
   showThreadDiscussion(clash);
 }
+
+// Titre tronque (CSS) si trop long pour la largeur du panneau discussion :
+// un clic affiche le titre complet, un reclic retronque.
+collisionDiscussionTitle.addEventListener("click", () => {
+  collisionDiscussionTitle.classList.toggle("expanded");
+});
 
 discussionReplyForm.addEventListener("submit", (e) => {
   e.preventDefault();

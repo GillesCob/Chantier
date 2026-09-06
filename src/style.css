@@ -717,7 +717,19 @@ html, body {
   padding: 12px 16px;
 }
 #collisionDiscussion[hidden] { display: none; }
-#collisionDiscussion h3 { flex-shrink: 0; margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+#collisionDiscussion h3 {
+  flex-shrink: 0;
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+#collisionDiscussion h3.expanded { white-space: normal; }
 
 #discussionMessages {
   list-style: none;
@@ -880,7 +892,6 @@ html, body {
 @media (max-width: 768px) {
   #discussionsBackBtn { display: inline-block; }
 }
-#discussionsDetailTitle { margin: 0 0 12px; font-size: 15px; }
 
 #threadVisualWrap {
   flex: 1;
