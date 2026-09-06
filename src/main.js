@@ -40,7 +40,10 @@ const navbarBrand = document.getElementById("navbarBrand");
 const landingPresentationBtn = document.getElementById("landingPresentationBtn");
 const landingDemoBtn = document.getElementById("landingDemoBtn");
 
-navbarBrand.addEventListener("click", () => activateView("landing"));
+navbarBrand.addEventListener("click", () => {
+  activateView("landing");
+  document.getElementById("view-landing").scrollTop = 0;
+});
 landingPresentationBtn.addEventListener("click", () => {
   activateView("presentation");
   activatePresentationSection("constat");
@@ -240,11 +243,7 @@ const PRESENTATION_SECTIONS = [
         <div class="constat-card is-missing"><span class="constat-num">10</span><h3>Détection de collision automatisée</h3><p>La détection de collisions devient automatique, via des outils open source ou de l'IA, pour trier les conflits avant une revue humaine, au lieu d'une saisie et revue 100% manuelle (évolution de la fonctionnalité 03).</p></div>
         <div class="constat-card is-missing"><span class="constat-num">11</span><h3>Zones sans documentation</h3><p>Les éléments de la GED non rattachés à un élément de la maquette sont repérés, et inversement les zones de la maquette sans document associé. Ça permet de repérer les trous de documentation avant qu'ils ne posent problème sur le terrain, plutôt que de les découvrir au moment où quelqu'un en a besoin. Pas construit dans ce POC, la façon de le faire n'est pas encore tranchée.</p></div>
       </div>
-      <div class="pres-card">
-        <h3>Limites générales de ce POC</h3>
-        <p>Affichage mobile : un usage sur chantier suppose une consultation sur mobile ou tablette. L'adaptation à ces écrans reste volontairement basique dans ce POC, le temps de valider le reste ; elle serait bien plus poussée sur une vraie version mise en prod.</p>
-        <p>Coupes : seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</p>
-      </div>
+      <div class="constat-highlight"><strong>Limites générales de ce POC.</strong> Affichage mobile : un usage sur chantier suppose une consultation sur mobile ou tablette. L'adaptation à ces écrans reste volontairement basique dans ce POC, le temps de valider le reste ; elle serait bien plus poussée sur une vraie version mise en prod. Coupes : seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</div>
     `
   },
   {
@@ -960,6 +959,7 @@ KNOWN_PEOPLE.forEach((person) => {
 });
 
 newDiscussionBtn.addEventListener("click", () => {
+  closeFicheSheet();
   pendingSnapshot = captureViewerState();
   newDiscussionForm.reset();
   newDiscussionModalOverlay.hidden = false;

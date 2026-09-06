@@ -77,7 +77,7 @@ html, body {
 /* Mobile (05/09) : la navbar (4 onglets + marque) ne tient pas sur un petit
    ecran, le menu passe en tiroir derriere un bouton hamburger. */
 @media (max-width: 768px) {
-  #navbarToggle { display: block; }
+  #navbarToggle { display: block; font-size: 26px; padding: 6px 10px; }
   #navbarLinks {
     display: none;
     position: fixed;
@@ -618,6 +618,14 @@ html, body {
   font-size: 13px;
   padding: 7px 9px;
   resize: none;
+}
+
+/* iOS Safari zoome automatiquement la page au focus d'un champ dont le
+   font-size est < 16px : oblige l'utilisateur a dezoomer lui-meme apres
+   coup. Remonte a 16px sur mobile uniquement, sans toucher a la densite
+   visuelle du desktop. */
+@media (max-width: 768px) {
+  .modal-field input, .modal-field textarea, #discussionReplyInput { font-size: 16px; }
 }
 
 #newDiscussionRecipients {
