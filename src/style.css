@@ -885,9 +885,15 @@ html, body {
 #threadVisualWrap {
   flex: 1;
   min-height: 0;
-  border-radius: 8px;
+  /* Annule le padding horizontal de #discussionsDetailContent (24px de
+     chaque cote, garde pour le texte : bouton retour, titre) : la
+     visionneuse doit border a border comme #collisionViewerSlot, pas
+     retrecie par ce padding. */
+  margin: 0 -24px;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   background: var(--bg);
   position: relative;
 }
