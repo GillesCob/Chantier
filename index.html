@@ -225,16 +225,15 @@
             <h3 id="discussionsDetailTitle"></h3>
 
             <div id="threadVisualWrap">
+              <div id="threadVisualToggle">
+                <button type="button" class="thread-toggle-btn active" data-mode="apres" title="La maquette actuelle, mise à jour">Après</button>
+                <button type="button" class="thread-toggle-btn" data-mode="avant" title="La maquette au moment de la création du fil">Avant</button>
+              </div>
               <div id="threadSnapshotPane">
                 <p class="info-empty">Image de la maquette au moment de la création de la discussion, afin de garder une trace de l'état initial</p>
               </div>
               <div id="threadViewerPane" hidden></div>
             </div>
-            <div id="threadVisualToggle">
-              <button type="button" class="thread-toggle-btn active" data-mode="apres">Après</button>
-              <button type="button" class="thread-toggle-btn" data-mode="avant">Avant</button>
-            </div>
-            <p class="info-empty">"Avant" : la maquette au moment de la création du fil. "Après" : la maquette actuelle, mise à jour.</p>
           </div>
         </div>
       </div>

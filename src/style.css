@@ -904,11 +904,22 @@ html, body {
 #threadViewerPane[hidden] { display: none; }
 #threadViewerPane #viewerWrap { position: absolute; inset: 0; }
 
+/* Deplace a l'interieur de #threadVisualWrap (overlay flottant, comme
+   #viewerToolbar sur le Viewer) plutot qu'en flex sibling en dessous :
+   sinon cette rangee de boutons + son texte d'explication grignotaient
+   de la hauteur sur le flex:1, la visionneuse finissait plus basse
+   qu'en Collision a hauteur de page egale. Explication "Avant"/"Après"
+   reportee en title (tooltip) plutot qu'en paragraphe visible. */
 #threadVisualToggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
   display: flex;
   gap: 6px;
-  margin: 8px 0 16px;
 }
+#threadVisualToggle .thread-toggle-btn { background: rgba(13, 17, 23, 0.75); }
+#threadVisualToggle .thread-toggle-btn.active { background: var(--surface); }
 .thread-toggle-btn {
   padding: 5px 12px;
   background: var(--bg);
