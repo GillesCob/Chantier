@@ -206,6 +206,51 @@ html, body {
   #infoPanel.open { transform: translateX(0); }
 }
 
+#ficheSheet { display: none; }
+
+@media (max-width: 768px) {
+  #ficheSheet {
+    display: block;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-height: 42vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+    padding: 12px 14px 14px;
+    z-index: 40;
+    transform: translateY(calc(100% + 24px));
+    transition: transform 0.2s ease;
+  }
+  #ficheSheet.open { transform: translateY(0); }
+}
+
+#ficheSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+#ficheSheetClose {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+#ficheSheetClose:hover { color: var(--text); }
+
 #collisionBackBtnMobile { display: none; }
 #collisionInfoPanelToggle { display: none; }
 #collisionInfoPanelBackdrop { display: none; }
@@ -401,7 +446,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 50;
 }
 #docModalOverlay[hidden] { display: none; }
 
@@ -475,7 +520,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: 51;
 }
 #downloadModalOverlay[hidden] { display: none; }
 

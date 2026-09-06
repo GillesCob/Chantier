@@ -115,6 +115,18 @@
             <div id="ficheDocs"></div>
           </details>
         </aside>
+
+        <!-- Mobile uniquement (cf media query) : evite d'ouvrir le tiroir
+             "☰ Infos" complet juste pour voir la fiche d'un element tape,
+             une modale discrete en bas d'ecran suffit. -->
+        <div id="ficheSheet" role="dialog" aria-label="Info sélection">
+          <div id="ficheSheetHeader">
+            <span>Info sélection</span>
+            <button type="button" id="ficheSheetClose" aria-label="Fermer">✕</button>
+          </div>
+          <dl class="fiche-content" id="ficheSheetContent"></dl>
+          <div id="ficheSheetDocs"></div>
+        </div>
       </div>
 
       <div id="view-collision" class="view" hidden>

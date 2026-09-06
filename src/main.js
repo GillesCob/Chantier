@@ -14,6 +14,10 @@ const coupeBtn = document.getElementById("coupeBtn");
 const coupeToggleVisibilityBtn = document.getElementById("coupeToggleVisibilityBtn");
 const coupeInvertBtn = document.getElementById("coupeInvertBtn");
 const ficheDocs = document.getElementById("ficheDocs");
+const ficheSheet = document.getElementById("ficheSheet");
+const ficheSheetClose = document.getElementById("ficheSheetClose");
+const ficheSheetContent = document.getElementById("ficheSheetContent");
+const ficheSheetDocs = document.getElementById("ficheSheetDocs");
 const docModalOverlay = document.getElementById("docModalOverlay");
 const docModalClose = document.getElementById("docModalClose");
 const docModalName = document.getElementById("docModalName");
@@ -244,6 +248,21 @@ const PRESENTATION_SECTIONS = [
         <div class="constat-card"><span class="constat-num">09</span><h3>Coupes</h3><p>Seule la coupe par surface sélectionnée est codée. D'autres façons de couper (par rapport aux files du projet A, B, C..., ou parallèlement à un niveau) sont envisagées, mais pas construites ici.</p></div>
         <div class="constat-card"><span class="constat-num">10</span><h3>Mise à jour de la maquette</h3><p>Dans ce POC, la maquette de référence est fixe. En réel, ça reste le rôle du BIM Manager du chantier de la tenir à jour. Une piste d'automatisation serait aussi à étudier : la prise en compte automatique d'une nouvelle maquette déposée sur la GED par un BE par exemple.</p></div>
       </div>
+    `
+  },
+  {
+    id: "roadmap",
+    tag: "05 · Étapes pour développer l'outil",
+    body: `
+      <p class="pres-hint">Le plan proposé n'est pas figé : l'ordre et le contenu de chaque étape restent à discuter selon les priorités d'IES. L'objectif ici est de rendre visible tout le chemin entre ce POC et un outil utilisé par un chantier entier.</p>
+      <div class="constat-grid">
+        <div class="constat-card"><span class="constat-num">01</span><h3>Un outil complet, pour le BIM Manager seul</h3><p>On construit une vraie version de l'outil (comptes, sauvegarde fiable des données), réservée à un seul utilisateur : le BIM Manager. Objectif : vérifier qu'il remplace vraiment Solibri ou Navisworks au quotidien, avant d'ouvrir l'outil à qui que ce soit d'autre.</p></div>
+        <div class="constat-card"><span class="constat-num">02</span><h3>Une vue commune pour tous les acteurs</h3><p>Les autres intervenants (architecte, BE, bureau de contrôle...) consultent une version de la maquette toujours à jour, sans avoir à redemander un export au BIM Manager à chaque fois : c'est le gros intérêt de cette étape. Pas encore de commentaire ni de statut à ce stade, juste la consulter.</p></div>
+        <div class="constat-card"><span class="constat-num">03</span><h3>Ouvrir les échanges autour de la maquette</h3><p>Chacun peut désormais commenter directement sur la maquette (une remarque de conception, un écart constaté sur le terrain), avec son propre compte. À ce stade, tout le monde peut encore commenter partout, sans distinction de métier.</p></div>
+        <div class="constat-card"><span class="constat-num">04</span><h3>Des droits différents selon le métier</h3><p>Chaque intervenant n'a accès qu'à ce qui le concerne : consulter, commenter, ou utiliser l'outil au quotidien selon son métier ou son lot. Un administrateur du projet gère qui a accès à quoi.</p></div>
+        <div class="constat-card"><span class="constat-num">05</span><h3>Automatiser et équiper plusieurs chantiers</h3><p>La détection de conflits devient automatique (plus seulement une saisie manuelle), la maquette se connecte directement à la GED, et l'outil peut équiper plusieurs chantiers en parallèle plutôt qu'un seul.</p></div>
+      </div>
+      <div class="constat-highlight">Chaque étape ajoute une vraie brique de travail (comptes, droits, automatisation...), pas juste un ajustement visuel. Le but de cette liste est de partir sur une vision commune du chemin à parcourir, avant de décider ensemble par où commencer.</div>
     `
   }
 ];
@@ -1431,20 +1450,20 @@ function labelForMaquette(maquetteId) {
   return maquette ? maquette.label : maquetteId;
 }
 
-function showSelection(rows, docs) {
-  ficheContent.innerHTML = "";
+// Rendu partage entre la fiche du tiroir lateral (desktop + tiroir "☰ Infos"
+// mobile) et la modale discrete du bas d'ecran (mobile, cf ficheSheet) :
+// memes donnees, deux emplacements d'affichage.
+function renderFicheInto(contentEl, docsEl, rows, docs) {
+  contentEl.innerHTML = "";
   rows.forEach(([label, value]) => {
     const dt = document.createElement("dt");
     dt.textContent = label;
     const dd = document.createElement("dd");
     dd.textContent = value;
-    ficheContent.append(dt, dd);
+    contentEl.append(dt, dd);
   });
 
-  fichePlaceholder.hidden = true;
-  ficheContent.hidden = false;
-
-  ficheDocs.innerHTML = "";
+  docsEl.innerHTML = "";
   if (docs && docs.length > 0) {
     const docsByLot = new Map();
     docs.forEach((doc) => {
@@ -1456,7 +1475,7 @@ function showSelection(rows, docs) {
       const lotTitle = document.createElement("p");
       lotTitle.className = "doc-lot";
       lotTitle.textContent = lot;
-      ficheDocs.appendChild(lotTitle);
+      docsEl.appendChild(lotTitle);
 
       lotDocs.forEach((doc) => {
         const btn = document.createElement("button");
@@ -1473,11 +1492,31 @@ function showSelection(rows, docs) {
         name.textContent = doc.nom;
 
         btn.append(version, name);
-        ficheDocs.appendChild(btn);
+        docsEl.appendChild(btn);
       });
     });
   }
 }
+
+function showSelection(rows, docs) {
+  renderFicheInto(ficheContent, ficheDocs, rows, docs);
+  fichePlaceholder.hidden = true;
+  ficheContent.hidden = false;
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function openFicheSheet() {
+  ficheSheet.classList.add("open");
+}
+
+function closeFicheSheet() {
+  ficheSheet.classList.remove("open");
+}
+
+ficheSheetClose.addEventListener("click", closeFicheSheet);
 
 // Remonte l'arbre spatial IFC (parent en parent) jusqu'a trouver l'etage
 // auquel l'element clique est officiellement rattache dans le fichier
@@ -1500,7 +1539,16 @@ function showFiche(entity) {
     ["Maquette", metaObject && metaObject.metaModels[0] ? labelForMaquette(metaObject.metaModels[0].id) : "n/a"],
     ["Niveau (IFC)", findNiveauIfc(entity.id) || "n/a"]
   ];
-  showSelection(rows, DOCS_BY_ELEMENT[entity.id] || []);
+  const docs = DOCS_BY_ELEMENT[entity.id] || [];
+  showSelection(rows, docs);
+
+  // Mobile : evite d'obliger a ouvrir le tiroir "☰ Infos" en entier juste
+  // pour voir la fiche d'un element tape, une modale discrete en bas
+  // d'ecran suffit (memes donnees que le tiroir).
+  if (isMobileViewport()) {
+    renderFicheInto(ficheSheetContent, ficheSheetDocs, rows, docs);
+    openFicheSheet();
+  }
 }
 
 function clearFiche() {
@@ -1508,6 +1556,7 @@ function clearFiche() {
   ficheContent.hidden = true;
   ficheContent.innerHTML = "";
   ficheDocs.innerHTML = "";
+  closeFicheSheet();
 }
 
 let selectedEntity = null;
