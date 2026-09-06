@@ -860,18 +860,18 @@ html, body {
   flex-direction: column;
 }
 #discussionsDetailPane[hidden] { display: none; }
-/* #discussionsDetailContent scrolle seul (flex:1), #collisionDiscussion
-   (bloc discussion partage avec Collision, ajoute apres ce wrapper) reste
-   fixe collee en bas de page, hauteur fixe, jamais dans le scroll : meme
-   structure qu'en Collision (#collisionViewerSlot flex:1 + #collisionDiscussion
-   fixe), juste avec le contenu de la page a la place du canvas 3D. */
+/* #threadVisualWrap est le flex:1 de cette colonne (comme #collisionViewerSlot
+   en Collision), le reste (bouton retour, titre, toggle, indice) garde sa
+   hauteur naturelle. #collisionDiscussion (bloc discussion partage avec
+   Collision, ajoute apres ce wrapper) reste fixe collee en bas de page,
+   jamais dans un scroll : aucun overflow-y ici, sinon la maquette elle-meme
+   se retrouvait a defiler avec le reste du texte (05/09, corrige le 06/09). */
 #discussionsDetailContent {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 0 24px 24px;
-  overflow-y: auto;
 }
 /* Inutile sur desktop : l'onglet "Discussions" de la navbar, toujours
    visible, ramene deja a la liste (cf reset dans le handler de clic navbar).
@@ -883,8 +883,8 @@ html, body {
 #discussionsDetailTitle { margin: 0 0 12px; font-size: 15px; }
 
 #threadVisualWrap {
-  height: 260px;
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 0;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--border);
