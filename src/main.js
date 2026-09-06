@@ -473,6 +473,15 @@ navbarToggle.addEventListener("click", () => {
   navbarLinksEl.classList.toggle("open");
 });
 
+// Clic en dehors du menu ouvert (sur le reste de la page) : le referme,
+// meme logique que les tiroirs "☰ Infos"/"☰ Sections" mais sans voile
+// dedie (le menu ne masque pas le contenu, un simple clic ailleurs suffit).
+document.addEventListener("click", (e) => {
+  if (!navbarLinksEl.classList.contains("open")) return;
+  if (navbarLinksEl.contains(e.target) || navbarToggle.contains(e.target)) return;
+  navbarLinksEl.classList.remove("open");
+});
+
 // Tiroir "Sections" de la page Presentation, mobile uniquement : masque par
 // defaut (cf media query), un bouton dedie l'affiche en overlay par-dessus
 // le contenu plutot que de partager la largeur avec lui.

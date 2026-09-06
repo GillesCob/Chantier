@@ -19,6 +19,13 @@ html, body {
 }
 
 #navbar {
+  position: relative;
+  /* Toujours au-dessus des voiles plein ecran (tiroirs mobiles, modales
+     document/telechargement, cf z-index 30 a 51 plus bas) : un element
+     sans position (comme la navbar avant ce correctif) est toujours peint
+     derriere un element positionne, meme avec un z-index plus faible. Un
+     voile oublie ouvert rendait donc la navbar injoignable au premier tap. */
+  z-index: 60;
   height: 52px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
