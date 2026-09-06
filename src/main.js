@@ -1165,7 +1165,10 @@ let currentDiscussionThread = null;
 
 function renderDiscussionMessages(thread) {
   discussionMessages.innerHTML = "";
-  thread.discussion.forEach((msg) => {
+  // Plus recents en haut, plus anciens en bas (le tableau reste lui en
+  // ordre chronologique, seul l'affichage est inverse) : le dernier
+  // message est visible immediatement, sans avoir a scroller.
+  thread.discussion.slice().reverse().forEach((msg) => {
     const li = document.createElement("li");
     li.className = "discussion-message";
     const auteur = document.createElement("div");
@@ -1177,9 +1180,6 @@ function renderDiscussionMessages(thread) {
     li.append(auteur, texte);
     discussionMessages.appendChild(li);
   });
-  // Plus anciens en haut, plus recents en bas : on arrive directement sur
-  // les derniers messages, remonter fait apparaitre les plus anciens.
-  discussionMessages.scrollTop = discussionMessages.scrollHeight;
 }
 
 function isThreadOpen(thread) {
