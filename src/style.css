@@ -903,15 +903,16 @@ html, body {
 #threadVisualWrap {
   flex: 1;
   min-height: 0;
-  /* Annule le padding horizontal de #discussionsDetailContent (24px de
-     chaque cote, garde pour le texte : bouton retour, titre) : la
-     visionneuse doit border a border comme #collisionViewerSlot, pas
-     retrecie par ce padding. */
-  margin: 0 -24px;
+  /* Annule le padding de #discussionsDetailContent (24px, garde pour le
+     texte : bouton retour) sur les 3 cotes concernes : la visionneuse
+     doit aller bord a bord comme #collisionViewerSlot, ni retrecie sur
+     les cotes, ni espacee du bloc discussion en dessous. Pas de
+     border-bottom : #collisionDiscussion a deja son propre border-top,
+     doublure evitee. */
+  margin: 0 -24px -24px;
   border-radius: 0;
   overflow: hidden;
   border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   background: var(--bg);
   position: relative;
 }
