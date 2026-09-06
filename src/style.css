@@ -625,7 +625,7 @@ html, body {
    coup. Remonte a 16px sur mobile uniquement, sans toucher a la densite
    visuelle du desktop. */
 @media (max-width: 768px) {
-  .modal-field input, .modal-field textarea, #discussionReplyInput { font-size: 16px; }
+  .modal-field input, .modal-field textarea { font-size: 16px; }
 }
 
 #newDiscussionRecipients {
@@ -764,6 +764,13 @@ html, body {
   font: inherit;
   font-size: 12.5px;
   padding: 6px 8px;
+}
+/* Place apres la regle ci-dessus (meme specificite, cascade = ordre) :
+   une regle mobile plus haute dans le fichier etait ecrasee par le
+   font-size 12.5px ci-dessus. iOS Safari zoome automatiquement la page
+   au focus d'un champ < 16px, d'ou le zoom signale au clic pour repondre. */
+@media (max-width: 768px) {
+  #discussionReplyInput { font-size: 16px; }
 }
 #discussionReplyForm button {
   padding: 7px 12px;
