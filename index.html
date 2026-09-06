@@ -73,7 +73,7 @@
       <div id="view-viewer" class="view" hidden>
         <div id="viewerWrap">
           <canvas id="viewerCanvas"></canvas>
-          <div id="loadingOverlay">Initialisation du moteur IFC...</div>
+          <div id="loadingOverlay"><div class="spinner"></div></div>
           <div id="viewerToolbar">
             <button id="recenterBtn" title="Recentrer la caméra sur la maquette">Recentrer</button>
             <button id="newDiscussionBtn" title="Ouvrir une nouvelle discussion à partir de ce point de vue">Nouvelle discussion</button>
@@ -138,8 +138,8 @@
 
         <div id="collisionDetail" hidden>
           <div id="collisionLeft">
+            <button type="button" id="collisionBackBtn" class="reset-btn">← Interactions</button>
             <div id="collisionViewerSlot">
-              <button type="button" id="collisionBackBtnMobile" class="reset-btn">← Interactions</button>
               <button type="button" id="collisionInfoPanelToggle" aria-label="Afficher les maquettes et collisions">☰ Infos</button>
             </div>
             <div id="collisionDiscussion" hidden>
@@ -154,8 +154,6 @@
 
           <div id="collisionInfoPanelBackdrop" hidden></div>
           <aside id="collisionInfoPanel" class="side-panel">
-            <button type="button" id="collisionBackBtn" class="reset-btn">← Interactions</button>
-
             <details class="info-section" id="section-collision-maquettes" open>
               <summary class="info-section-title"><span>Maquettes</span></summary>
               <ul class="info-list" id="collisionMaquettesList"></ul>

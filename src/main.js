@@ -10,6 +10,7 @@ const ficheContent = document.getElementById("ficheContent");
 const recenterBtn = document.getElementById("recenterBtn");
 const niveauxResetBtn = document.getElementById("niveauxResetBtn");
 const maquettesResetBtn = document.getElementById("maquettesResetBtn");
+const coupeToolbar = document.getElementById("coupeToolbar");
 const coupeBtn = document.getElementById("coupeBtn");
 const coupeToggleVisibilityBtn = document.getElementById("coupeToggleVisibilityBtn");
 const coupeInvertBtn = document.getElementById("coupeInvertBtn");
@@ -57,7 +58,6 @@ const detectionsEmpty = document.getElementById("detectionsEmpty");
 const collisionMaquettesList = document.getElementById("collisionMaquettesList");
 const collisionsList = document.getElementById("collisionsList");
 const collisionBackBtn = document.getElementById("collisionBackBtn");
-const collisionBackBtnMobile = document.getElementById("collisionBackBtnMobile");
 const collisionInfoPanelToggle = document.getElementById("collisionInfoPanelToggle");
 const collisionInfoPanelBackdrop = document.getElementById("collisionInfoPanelBackdrop");
 const collisionInfoPanel = document.getElementById("collisionInfoPanel");
@@ -199,7 +199,7 @@ const PRESENTATION_SECTIONS = [
     id: "propositions",
     tag: "02 · Fonctionnalités construites ou prévues",
     body: `
-      <p class="pres-hint">Fonctionnalités déjà présentes dans ce POC (en vert) et celles prévues pour une vraie première version (en rouge).</p>
+      <p class="pres-hint">Le catalogue des fonctionnalités : ce qui est déjà démontrable dans ce POC (en vert) et ce qui est envisagé pour une vraie première version (en rouge). Dans quel ordre les construire, et pour qui, c'est l'objet de la section 05.</p>
       <div class="constat-grid">
         <div class="constat-card is-demo"><span class="constat-num">01</span><h3>Partage &amp; consultation IFC</h3><p>On affiche la maquette IFC directement dans le navigateur, sans installation, avec un accès partagé entre intervenants.</p></div>
         <div class="constat-card is-demo"><span class="constat-num">02</span><h3>Documents sur éléments</h3><p>Un document sur la GED peut être rattaché à un élément précis de la maquette : un élément, un niveau, une pièce...</p></div>
@@ -238,7 +238,7 @@ const PRESENTATION_SECTIONS = [
       <p class="pres-hint">Point par point, ce que cette démo simplifie par rapport à une vraie version.</p>
       <div class="constat-grid">
         <div class="constat-card"><span class="constat-num">01</span><h3>Maquettes</h3><p>Les maquettes utilisées sont des ressources pédagogiques eduscol en libre accès, pas de vraies maquettes de chantier. Elles sont chargées directement dans le navigateur sans conversion, ce qui reste viable ici grâce à leur poids réduit. Pour une vraie maquette plus lourde, la conversion en format compressé (.xkt) a été testée dans ce POC (visible dans le viewer sous le nom Maquette CEA) : le fichier passe de 27 Mo à 8,6 Mo, pensé pour charger plus vite qu'un IFC brut de cette taille.</p></div>
-        <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Cette démo n'est pas responsive mais pensée pour un écran d'ordinateur. Un usage sur chantier suppose une consultation sur mobile ou tablette, ce qui n'est pas traité dans ce POC.</p></div>
+        <div class="constat-card"><span class="constat-num">02</span><h3>Affichage mobile</h3><p>Un usage sur chantier suppose une consultation sur mobile ou tablette. L'adaptation à ces écrans reste volontairement basique dans ce POC, le temps de valider le reste : elle serait bien plus poussée sur une vraie version mise en prod.</p></div>
         <div class="constat-card"><span class="constat-num">03</span><h3>Détection de conflits</h3><p>Les statuts (nouveau/confirmé/écarté) sont posés à la main sur 2 à 3 clashs simulés. En réel, un moteur de détection géométrique combiné à un historique de statut piloté par coordonnée absolue permettrait de ne réexaminer que les nouvelles détections à chaque mise à jour de maquette.</p></div>
         <div class="constat-card"><span class="constat-num">04</span><h3>Page Collision</h3><p>L'organisation actuelle affiche d'abord la liste des comparaisons faites entre deux maquettes (ex. Structure vs Toiture métallique), puis, dans chacune, la liste des conflits trouvés ; cliquer sur un conflit précis en affiche le détail et la discussion. C'est une fonctionnalité à discuter afin de mettre en place le besoin réel, pas figée par cette démo.</p></div>
         <div class="constat-card"><span class="constat-num">05</span><h3>Utilisateur</h3><p>La page Discussions est filtrée sur un utilisateur simulé fixe. Il n'y a pas de vraie gestion d'utilisateurs ni d'authentification dans ce POC, prévue uniquement pour une vraie version.</p></div>
@@ -254,7 +254,7 @@ const PRESENTATION_SECTIONS = [
     id: "roadmap",
     tag: "05 · Étapes pour développer l'outil",
     body: `
-      <p class="pres-hint">Le plan proposé n'est pas figé : l'ordre et le contenu de chaque étape restent à discuter selon les priorités d'IES. L'objectif ici est de rendre visible tout le chemin entre ce POC et un outil utilisé par un chantier entier.</p>
+      <p class="pres-hint">Pas le catalogue des fonctionnalités (cf section 02), mais le processus : dans quel ordre les construire, et pour qui à chaque étape. Le plan proposé n'est pas figé : l'ordre et le contenu de chaque étape restent à discuter selon les priorités d'IES. L'objectif ici est de rendre visible tout le chemin entre ce POC et un outil utilisé par un chantier entier.</p>
       <div class="constat-grid">
         <div class="constat-card"><span class="constat-num">01</span><h3>Un outil complet, pour le BIM Manager seul</h3><p>On construit une vraie version de l'outil (comptes, sauvegarde fiable des données), réservée à un seul utilisateur : le BIM Manager. Objectif : vérifier qu'il remplace vraiment Solibri ou Navisworks au quotidien, avant d'ouvrir l'outil à qui que ce soit d'autre.</p></div>
         <div class="constat-card"><span class="constat-num">02</span><h3>Une vue commune pour tous les acteurs</h3><p>Les autres intervenants (architecte, BE, bureau de contrôle...) consultent une version de la maquette toujours à jour, sans avoir à redemander un export au BIM Manager à chaque fois : c'est le gros intérêt de cette étape. Pas encore de commentaire ni de statut à ce stade, juste la consulter.</p></div>
@@ -411,6 +411,7 @@ function activateView(viewName) {
     recenterTarget = null;
     newDiscussionBtn.hidden = false;
     coupeBtn.hidden = false;
+    coupeToolbar.hidden = false;
   }
   try {
     localStorage.setItem("chantier-active-view", viewName);
@@ -783,8 +784,11 @@ function setThreadVisualMode(mode, thread) {
   threadSnapshotPane.hidden = true;
   threadViewerPane.hidden = false;
   threadViewerPane.appendChild(viewerWrap);
+  // Vue non actionnable, seule la rotation/le recentrage sont permis :
+  // ni "Nouvelle discussion" (on est deja dans une discussion), ni les
+  // boutons de coupe (le plan de coupe reste specifique a l'onglet Viewer).
   newDiscussionBtn.hidden = true;
-  coupeBtn.hidden = true;
+  coupeToolbar.hidden = true;
   window.dispatchEvent(new Event("resize"));
 
   const goToThreadView = () => {
@@ -1038,6 +1042,10 @@ function openDetection(detection) {
 
   collisionViewerSlot.appendChild(viewerWrap);
   collisionLeft.appendChild(collisionDiscussion);
+  // Meme logique que dans un fil de discussion : ici on ne fait que
+  // consulter une collision, pas de "Nouvelle discussion" ni de coupe.
+  newDiscussionBtn.hidden = true;
+  coupeToolbar.hidden = true;
   window.dispatchEvent(new Event("resize"));
 
   // Ouvert par defaut (sans effet visuel sur desktop, le panneau y est deja
@@ -1217,7 +1225,6 @@ function goBackToDetections() {
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
-collisionBackBtnMobile.addEventListener("click", goBackToDetections);
 
 // Meme principe que le tiroir Viewer/Presentation : le panneau Maquettes/
 // Collisions masque par defaut sur mobile, ouvert en overlay via ce bouton
@@ -1702,20 +1709,6 @@ renderMaquetteRows(maquettesList, MAQUETTES);
 const IfcAPI = new WebIFC.IfcAPI();
 IfcAPI.SetWasmPath("/wasm/");
 
-// Messages de l'overlay de chargement : un vrai message par maquette
-// (annonce), entrecoupe de phrases generiques sans vraie info dessous
-// (illusion de granularite), le tout en rotation tant que tout n'est pas
-// charge. Chaque "loaded" reel vient interrompre la rotation une fois pour
-// afficher une vraie info (nombre d'elements), avant qu'elle ne reprenne.
-const loadingCyclePhrases = MAQUETTES.map((m) => "Chargement de " + m.label + "...")
-  .concat(["Analyse de la géométrie...", "Construction de la scène 3D...", "Préparation de l'affichage..."]);
-let loadingCycleIndex = 0;
-loadingOverlay.textContent = loadingCyclePhrases[0];
-const loadingCycleInterval = setInterval(() => {
-  loadingCycleIndex = (loadingCycleIndex + 1) % loadingCyclePhrases.length;
-  loadingOverlay.textContent = loadingCyclePhrases[loadingCycleIndex];
-}, 900);
-
 IfcAPI.Init().then(() => {
   const ifcLoader = new WebIFCLoaderPlugin(viewer, { WebIFC, IfcAPI });
   const xktLoader = new XKTLoaderPlugin(viewer);
@@ -1735,7 +1728,6 @@ IfcAPI.Init().then(() => {
 
       const countText = model.numEntities.toLocaleString("fr-FR") + " éléments";
       (maquetteCountEls.get(maquette.id) || []).forEach((el) => { el.textContent = countText; });
-      loadingOverlay.textContent = maquette.label + " chargée (" + countText + ")";
 
       // Rappelee a chaque chargement (pas seulement celui de la CEA, source
       // des niveaux) : les 3 maquettes chargent en parallele, l'ordre reel
@@ -1746,7 +1738,6 @@ IfcAPI.Init().then(() => {
 
       loadedCount++;
       if (loadedCount === MAQUETTES.length) {
-        clearInterval(loadingCycleInterval);
         loadingOverlay.classList.add("hidden");
         viewer.cameraFlight.flyTo(DEFAULT_CAMERA_STATE);
         initialCameraState = DEFAULT_CAMERA_STATE;
@@ -1754,7 +1745,7 @@ IfcAPI.Init().then(() => {
     });
 
     model.on("error", (msg) => {
-      clearInterval(loadingCycleInterval);
+      loadingOverlay.classList.add("error");
       loadingOverlay.textContent = "Erreur de chargement (" + maquette.label + ") : " + msg;
     });
   });
