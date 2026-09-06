@@ -751,7 +751,7 @@ html, body {
   display: flex;
   gap: 8px;
   margin-top: 10px;
-  align-items: flex-end;
+  align-items: center;
   flex-shrink: 0;
 }
 #discussionReplyForm[hidden] { display: none; }
@@ -938,7 +938,7 @@ html, body {
    reportee en title (tooltip) plutot qu'en paragraphe visible. */
 #threadVisualToggle {
   position: absolute;
-  top: 10px;
+  top: 15px;
   left: 10px;
   z-index: 5;
   display: flex;
