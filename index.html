@@ -29,23 +29,54 @@
           </div>
         </div>
 
-        <div id="landingSections">
-          <div class="landing-section-card">
-            <h3>Viewer</h3>
-            <p>Charger et explorer les maquettes en direct dans le navigateur, sans installation.</p>
-          </div>
-          <div class="landing-section-card">
-            <h3>Détection de collision</h3>
-            <p>Détecter les conflits entre corps de métier afin de les résoudre avant qu'ils ne deviennent des problèmes sur le chantier.</p>
-          </div>
-          <div class="landing-section-card">
-            <h3>Échanges autour de la maquette</h3>
-            <p>Discuter et annoter directement la maquette, avec les bons interlocuteurs.</p>
-          </div>
-        </div>
+        <div id="landingIntro">
+          <h2 id="landingIntroTitle">Ce que vous trouverez dans cette présentation</h2>
 
-        <div id="landingButtons">
-          <button type="button" id="landingMoreBtn">En savoir plus</button>
+          <div class="landing-part">
+            <p class="landing-part-eyebrow">Partie 1 · La démarche</p>
+            <div class="landing-part-grid">
+              <div class="landing-part-card">
+                <span class="landing-part-num">01</span>
+                <h3>Un état des lieux</h3>
+                <p>Les problèmes concrets rencontrés aujourd'hui avec le BIM sur les chantiers et les solutions que je propose pour chacun d'eux.</p>
+              </div>
+              <div class="landing-part-card">
+                <span class="landing-part-num">02</span>
+                <h3>Un POC concret</h3>
+                <p>Présentation des premières fonctionnalités déjà développées dans ce prototype et celles déjà identifiées pour la suite.</p>
+              </div>
+              <div class="landing-part-card">
+                <span class="landing-part-num">03</span>
+                <h3>Une feuille de route</h3>
+                <p>Une proposition des étapes envisagées pour développer réellement cette application, toutes à discuter ensemble.</p>
+              </div>
+            </div>
+            <button type="button" id="landingPresentationBtn" class="landing-part-btn">Accéder à la présentation</button>
+          </div>
+
+          <div class="landing-part">
+            <p class="landing-part-eyebrow">Partie 2 · La preuve de faisabilité</p>
+            <p class="landing-part-lead">Une première version volontairement simplifiée de l'application, afin de prouver la viabilité des outils que j'imagine utiliser (visionneuse IFC open source, compression des maquettes pour une navigation fluide dans le navigateur, ...) et donner un premier aperçu concret du résultat.</p>
+
+            <div class="landing-subblock">
+              <p id="landingSectionsLabel">Fonctionnalités présentées dans ce POC</p>
+              <div id="landingSections" class="landing-part-grid">
+                <div class="landing-part-card">
+                  <h3>Viewer</h3>
+                  <p>Permettre l'exploration et l'interaction avec les maquettes directement dans le navigateur, sans installer aucun logiciel.</p>
+                </div>
+                <div class="landing-part-card">
+                  <h3>Détection de collision</h3>
+                  <p>Détecter les conflits entre maquettes, localiser précisément leur position et en discuter pour les résoudre avant qu'ils ne deviennent des problèmes sur le chantier.</p>
+                </div>
+                <div class="landing-part-card">
+                  <h3>Échanges autour de la maquette</h3>
+                  <p>Annoter et discuter directement sur la maquette, au bureau comme sur le chantier, avec une seule source de vérité partagée par tous.</p>
+                </div>
+              </div>
+            </div>
+            <button type="button" id="landingDemoBtn" class="landing-part-btn">Accéder à la démo</button>
+          </div>
         </div>
 
         <footer id="landingFooter">

@@ -37,10 +37,15 @@ const presentationSidebar = document.getElementById("presentationSidebar");
 const presentationSidebarToggle = document.getElementById("presentationSidebarToggle");
 const presentationSidebarBackdrop = document.getElementById("presentationSidebarBackdrop");
 const navbarBrand = document.getElementById("navbarBrand");
-const landingMoreBtn = document.getElementById("landingMoreBtn");
+const landingPresentationBtn = document.getElementById("landingPresentationBtn");
+const landingDemoBtn = document.getElementById("landingDemoBtn");
 
 navbarBrand.addEventListener("click", () => activateView("landing"));
-landingMoreBtn.addEventListener("click", () => activateView("presentation"));
+landingPresentationBtn.addEventListener("click", () => {
+  activateView("presentation");
+  activatePresentationSection("constat");
+});
+landingDemoBtn.addEventListener("click", () => activateView("viewer"));
 
 const viewerWrap = document.getElementById("viewerWrap");
 const viewViewer = document.getElementById("view-viewer");
