@@ -44,6 +44,7 @@ const infoPanelToggle = document.getElementById("infoPanelToggle");
 const infoPanelBackdrop = document.getElementById("infoPanelBackdrop");
 const collisionRecap = document.getElementById("collisionRecap");
 const collisionDetail = document.getElementById("collisionDetail");
+const collisionLeft = document.getElementById("collisionLeft");
 const collisionViewerSlot = document.getElementById("collisionViewerSlot");
 const collisionDiscussion = document.getElementById("collisionDiscussion");
 const discussionMessages = document.getElementById("discussionMessages");
@@ -52,6 +53,10 @@ const detectionsEmpty = document.getElementById("detectionsEmpty");
 const collisionMaquettesList = document.getElementById("collisionMaquettesList");
 const collisionsList = document.getElementById("collisionsList");
 const collisionBackBtn = document.getElementById("collisionBackBtn");
+const collisionBackBtnMobile = document.getElementById("collisionBackBtnMobile");
+const collisionInfoPanelToggle = document.getElementById("collisionInfoPanelToggle");
+const collisionInfoPanelBackdrop = document.getElementById("collisionInfoPanelBackdrop");
+const collisionInfoPanel = document.getElementById("collisionInfoPanel");
 const discussionReplyForm = document.getElementById("discussionReplyForm");
 const discussionReplyInput = document.getElementById("discussionReplyInput");
 const discussionsThreadsList = document.getElementById("discussionsThreadsList");
@@ -59,9 +64,6 @@ const discussionsThreadsEmpty = document.getElementById("discussionsThreadsEmpty
 const discussionsListPane = document.getElementById("discussionsListPane");
 const discussionsDetailPane = document.getElementById("discussionsDetailPane");
 const discussionsDetailTitle = document.getElementById("discussionsDetailTitle");
-const discussionsDetailMessages = document.getElementById("discussionsDetailMessages");
-const discussionsReplyForm = document.getElementById("discussionsReplyForm");
-const discussionsReplyInput = document.getElementById("discussionsReplyInput");
 const discussionsBackBtn = document.getElementById("discussionsBackBtn");
 const threadSnapshotPane = document.getElementById("threadSnapshotPane");
 const threadViewerPane = document.getElementById("threadViewerPane");
@@ -414,7 +416,32 @@ navLinks.forEach((link) => {
     // n'est appelee qu'au clic, jamais au chargement initial : MAQUETTES
     // n'existe pas encore a ce moment-la plus bas dans le fichier.
     restoreAllModelsVisible();
+    // Idem pour une detection restee ouverte : sinon revenir sur Collision
+    // via la navbar (au lieu du bouton retour) rouvre la meme detection,
+    // mais viewerWrap a entre-temps ete deplace ailleurs (ex. onglet
+    // Viewer) : canvas vide, page noire.
+    if (!collisionDetail.hidden) {
+      collisionDetail.hidden = true;
+      collisionRecap.hidden = false;
+    }
+    // Meme chose pour un fil de discussion reste ouvert : sinon revenir sur
+    // Discussions via la navbar rouvre le meme fil au lieu de la liste.
+    if (!discussionsDetailPane.hidden) {
+      discussionsDetailPane.hidden = true;
+      discussionsListPane.hidden = false;
+    }
     activateView(link.dataset.view);
+    // Revenir sur Viewer doit repartir d'un etat "neutre" et previsible :
+    // equivalent a cliquer "Recentrer" (camera) et "Tout afficher" (niveaux,
+    // les maquettes le sont deja via restoreAllModelsVisible ci-dessus).
+    if (link.dataset.view === "viewer") {
+      niveauxState.forEach((n) => {
+        n.checked = true;
+        if (n.checkboxEl) n.checkboxEl.checked = true;
+      });
+      applyVisibility();
+      viewer.cameraFlight.flyTo(initialCameraState || DEFAULT_CAMERA_STATE);
+    }
     navbarLinksEl.classList.remove("open");
   });
 });
@@ -686,9 +713,6 @@ const KNOWN_PEOPLE = ["Julie Martin (BE Structure)", "Karim Haddad (Charpente)",
 function threadType(thread) {
   return CLASHES.includes(thread) ? "collision" : "discussion";
 }
-function threadIsOpen(thread) {
-  return threadType(thread) === "collision" ? thread.statut !== "ecarte" : thread.open;
-}
 
 let discussionsTypeFilterValue = "tout";
 
@@ -794,35 +818,17 @@ function openThreadDetail(thread) {
   currentThread = thread;
   setThreadVisualMode("apres", thread);
 
+  // Bloc discussion partage avec Collision (cf showThreadDiscussion) :
+  // deplace ici avant d'etre rempli, au cas ou il etait reste dans
+  // #collisionLeft depuis la derniere detection consultee.
+  discussionsDetailPane.appendChild(collisionDiscussion);
+  showThreadDiscussion(thread);
+
   // Hash specifique au fil (#discussions/<id>) pour qu'un rechargement de
   // page reste sur ce fil precis, pas juste sur l'onglet Discussions.
   if (history.replaceState) {
     history.replaceState(null, "", "#discussions/" + thread.id);
   }
-
-  discussionsDetailMessages.innerHTML = "";
-  thread.discussion.forEach((msg) => {
-    const li = document.createElement("li");
-    li.className = "discussion-message";
-    const auteur = document.createElement("div");
-    auteur.className = "discussion-auteur";
-    auteur.textContent = msg.auteur;
-    const texte = document.createElement("div");
-    texte.className = "discussion-texte";
-    texte.textContent = msg.texte;
-    li.append(auteur, texte);
-    discussionsDetailMessages.appendChild(li);
-  });
-
-  discussionsReplyForm.hidden = !threadIsOpen(thread);
-  discussionsReplyInput.value = "";
-  discussionsReplyForm.onsubmit = (e) => {
-    e.preventDefault();
-    const texte = discussionsReplyInput.value.trim();
-    if (!texte) return;
-    thread.discussion.push({ auteur: CURRENT_USER, texte });
-    openThreadDetail(thread);
-  };
 }
 
 discussionsFilterBtns.forEach((btn) => {
@@ -1012,7 +1018,15 @@ function openDetection(detection) {
   collisionDetail.hidden = false;
 
   collisionViewerSlot.appendChild(viewerWrap);
+  collisionLeft.appendChild(collisionDiscussion);
   window.dispatchEvent(new Event("resize"));
+
+  // Ouvert par defaut (sans effet visuel sur desktop, le panneau y est deja
+  // toujours visible) : sur mobile, arriver ici doit montrer tout de suite
+  // la liste des collisions a selectionner, pas un canvas vide avec un
+  // bouton "Infos" a chercher.
+  collisionInfoPanel.classList.add("open");
+  collisionInfoPanelBackdrop.hidden = false;
 
   // Ne montre que les maquettes de cette detection (ex. Maquette CEA hors
   // sujet d'une comparaison structure/toiture, masquee ici) : avant le rendu
@@ -1027,7 +1041,7 @@ function openDetection(detection) {
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
   discussionReplyForm.hidden = true;
-  currentClash = null;
+  currentDiscussionThread = null;
   recenterTarget = null;
 }
 
@@ -1040,6 +1054,7 @@ function buildCollisionItem(clash) {
     collisionsList.querySelectorAll(".collision-item").forEach((el) => el.classList.remove("active"));
     btn.classList.add("active");
     selectClash(clash);
+    closeCollisionInfoPanelDrawer();
   });
 
   const zone = document.createElement("span");
@@ -1114,11 +1129,11 @@ function flyToClash(clash) {
   viewer.cameraFlight.flyTo({ eye, look: center, up: [0, 1, 0], duration: 1.2 });
 }
 
-let currentClash = null;
+let currentDiscussionThread = null;
 
-function renderDiscussionMessages(clash) {
+function renderDiscussionMessages(thread) {
   discussionMessages.innerHTML = "";
-  clash.discussion.forEach((msg) => {
+  thread.discussion.forEach((msg) => {
     const li = document.createElement("li");
     li.className = "discussion-message";
     const auteur = document.createElement("div");
@@ -1130,44 +1145,74 @@ function renderDiscussionMessages(clash) {
     li.append(auteur, texte);
     discussionMessages.appendChild(li);
   });
+  // Plus anciens en haut, plus recents en bas : on arrive directement sur
+  // les derniers messages, remonter fait apparaitre les plus anciens.
+  discussionMessages.scrollTop = discussionMessages.scrollHeight;
 }
 
-function selectClash(clash) {
-  flyToClash(clash);
-  currentClash = clash;
-  recenterTarget = () => flyToClash(clash);
+function isThreadOpen(thread) {
+  return threadType(thread) === "collision" ? thread.statut !== "ecarte" : thread.open;
+}
 
-  const isOpen = clash.statut !== "ecarte";
+// Bloc "Discussion" (#collisionDiscussion, avec sa liste de messages et son
+// formulaire) partage entre Collision et Discussions : un seul jeu de
+// html/css/js, deplace physiquement dans le DOM au moment de l'usage (meme
+// principe que #viewerWrap deplace entre Viewer/Collision/fil).
+function showThreadDiscussion(thread) {
+  currentDiscussionThread = thread;
+  const isOpen = isThreadOpen(thread);
 
-  if (clash.discussion.length === 0 && !isOpen) {
+  if (thread.discussion.length === 0 && !isOpen) {
     collisionDiscussion.hidden = true;
     return;
   }
 
   collisionDiscussion.hidden = false;
-  renderDiscussionMessages(clash);
+  renderDiscussionMessages(thread);
 
   discussionReplyForm.hidden = !isOpen;
   discussionReplyInput.value = "";
 }
 
+function selectClash(clash) {
+  flyToClash(clash);
+  recenterTarget = () => flyToClash(clash);
+  showThreadDiscussion(clash);
+}
+
 discussionReplyForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const texte = discussionReplyInput.value.trim();
-  if (!texte || !currentClash) return;
+  if (!texte || !currentDiscussionThread) return;
 
-  currentClash.discussion.push({ auteur: "Vous", texte });
-  renderDiscussionMessages(currentClash);
+  currentDiscussionThread.discussion.push({ auteur: "Vous", texte });
+  renderDiscussionMessages(currentDiscussionThread);
   discussionReplyInput.value = "";
 });
 
-collisionBackBtn.addEventListener("click", () => {
+function goBackToDetections() {
   collisionDetail.hidden = true;
   collisionRecap.hidden = false;
   viewViewer.insertBefore(viewerWrap, infoPanel);
   recenterTarget = null;
   restoreAllModelsVisible();
+}
+collisionBackBtn.addEventListener("click", goBackToDetections);
+collisionBackBtnMobile.addEventListener("click", goBackToDetections);
+
+// Meme principe que le tiroir Viewer/Presentation : le panneau Maquettes/
+// Collisions masque par defaut sur mobile, ouvert en overlay via ce bouton
+// (duplique flottant sur la maquette, cf le bouton retour ci-dessus, qui vit
+// normalement dans ce meme panneau donc invisible tant qu'il est ferme).
+collisionInfoPanelToggle.addEventListener("click", () => {
+  collisionInfoPanel.classList.add("open");
+  collisionInfoPanelBackdrop.hidden = false;
 });
+function closeCollisionInfoPanelDrawer() {
+  collisionInfoPanel.classList.remove("open");
+  collisionInfoPanelBackdrop.hidden = true;
+}
+collisionInfoPanelBackdrop.addEventListener("click", closeCollisionInfoPanelDrawer);
 
 renderDetections();
 

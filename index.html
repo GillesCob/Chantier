@@ -62,7 +62,7 @@
 
       <div id="view-presentation" class="view" hidden>
         <button type="button" id="presentationSidebarToggle" aria-label="Afficher les sections">☰ Sections</button>
-        <div id="presentationSidebarBackdrop"></div>
+        <div id="presentationSidebarBackdrop" hidden></div>
         <div id="presentationSidebar">
           <p class="presentation-sidebar-label">Sections</p>
           <ul class="info-list" id="presentationSectionsList"></ul>
@@ -84,11 +84,13 @@
             <button id="coupeInvertBtn" title="Inverser le côté coupé" hidden>Inverser la coupe</button>
             <button id="coupeToggleVisibilityBtn" title="Afficher ou masquer le rectangle/poignées du plan de coupe" hidden>Masquer le plan de coupe</button>
           </div>
-
-          <button type="button" id="infoPanelToggle" aria-label="Afficher les niveaux, maquettes et infos">☰ Infos</button>
         </div>
 
-        <div id="infoPanelBackdrop"></div>
+        <!-- Hors de #viewerWrap expres (05/09) : ce conteneur est deplace tel
+             quel dans le DOM (Collision, fil de discussion), ce bouton ne
+             doit rester visible que dans l'onglet Viewer lui-meme. -->
+        <button type="button" id="infoPanelToggle" aria-label="Afficher les niveaux, maquettes et infos">☰ Infos</button>
+        <div id="infoPanelBackdrop" hidden></div>
         <aside id="infoPanel" class="side-panel">
           <details class="info-section" id="section-niveaux" open>
             <summary class="info-section-title">
@@ -124,7 +126,10 @@
 
         <div id="collisionDetail" hidden>
           <div id="collisionLeft">
-            <div id="collisionViewerSlot"></div>
+            <div id="collisionViewerSlot">
+              <button type="button" id="collisionBackBtnMobile" class="reset-btn">← Interactions</button>
+              <button type="button" id="collisionInfoPanelToggle" aria-label="Afficher les maquettes et collisions">☰ Infos</button>
+            </div>
             <div id="collisionDiscussion" hidden>
               <h3>Discussion</h3>
               <ul id="discussionMessages"></ul>
@@ -135,6 +140,7 @@
             </div>
           </div>
 
+          <div id="collisionInfoPanelBackdrop" hidden></div>
           <aside id="collisionInfoPanel" class="side-panel">
             <button type="button" id="collisionBackBtn" class="reset-btn">← Interactions</button>
 
@@ -165,26 +171,22 @@
         </div>
 
         <div id="discussionsDetailPane" hidden>
-          <button type="button" id="discussionsBackBtn" class="reset-btn">← Discussions</button>
-          <h3 id="discussionsDetailTitle"></h3>
+          <div id="discussionsDetailContent">
+            <button type="button" id="discussionsBackBtn" class="reset-btn">← Discussions</button>
+            <h3 id="discussionsDetailTitle"></h3>
 
-          <div id="threadVisualWrap">
-            <div id="threadSnapshotPane">
-              <p class="info-empty">Image de la maquette au moment de la création de la discussion, afin de garder une trace de l'état initial</p>
+            <div id="threadVisualWrap">
+              <div id="threadSnapshotPane">
+                <p class="info-empty">Image de la maquette au moment de la création de la discussion, afin de garder une trace de l'état initial</p>
+              </div>
+              <div id="threadViewerPane" hidden></div>
             </div>
-            <div id="threadViewerPane" hidden></div>
+            <div id="threadVisualToggle">
+              <button type="button" class="thread-toggle-btn active" data-mode="apres">Après</button>
+              <button type="button" class="thread-toggle-btn" data-mode="avant">Avant</button>
+            </div>
+            <p class="info-empty">"Avant" : la maquette au moment de la création du fil. "Après" : la maquette actuelle, mise à jour.</p>
           </div>
-          <div id="threadVisualToggle">
-            <button type="button" class="thread-toggle-btn active" data-mode="apres">Après</button>
-            <button type="button" class="thread-toggle-btn" data-mode="avant">Avant</button>
-          </div>
-          <p class="info-empty">"Avant" : la maquette au moment de la création du fil. "Après" : la maquette actuelle, mise à jour.</p>
-
-          <ul id="discussionsDetailMessages"></ul>
-          <form id="discussionsReplyForm" hidden>
-            <textarea id="discussionsReplyInput" placeholder="Répondre..." rows="2"></textarea>
-            <button type="submit">Envoyer</button>
-          </form>
         </div>
       </div>
     </div>
