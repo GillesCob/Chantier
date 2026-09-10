@@ -598,12 +598,14 @@ const MAQUETTES = [
 // "collision", cf tools/clash-test/run_clash.py) sur Projet_structure.ifc
 // vs Toit_Metal_2.ifc, rien retouche/invente a la main (10/09). Chaque
 // entree correspond a un resultat exact du fichier tools/clash-test/
-// clashes.json : entityIds = a_global_id/b_global_id, point = milieu de
-// p1/p2 (le point de croisement precis calcule par IfcClash lui-meme, pas
-// une approximation par AABB), zone = a_name/b_name reformules en francais
-// (contenu deja present dans le fichier, pas une invention), statut
-// "nouveau" et auteur "Detection automatique" par defaut car IfcClash ne
-// produit ni triage humain ni conversation, uniquement de la geometrie.
+// clashes.json : entityIds = a_global_id/b_global_id (le point p1/p2 du
+// fichier n'est pas repris ici, repere Z-up d'IfcClash different du Y-up du
+// viewer une fois le modele charge ; la position 3D du marqueur est
+// recalculee depuis le viewer lui-meme, cf clashCenter), zone = a_name/
+// b_name reformules en francais (contenu deja present dans le fichier, pas
+// une invention), statut "nouveau" et auteur "Detection automatique" par
+// defaut car IfcClash ne produit ni triage humain ni conversation,
+// uniquement de la geometrie.
 const DETECTIONS = [
   { id: "structure-toiture", modeles: ["archi", "toit"], label: "Structure ↔ Toiture métallique" }
 ];
@@ -618,7 +620,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 60,
-    point: [5.0267, 6.4626, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trE"],
@@ -633,7 +634,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 100,
-    point: [5.0576, 1.4626, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2tqm"],
@@ -648,7 +648,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 140,
-    point: [20.6066, 1.4642, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqm"],
@@ -663,7 +662,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 180,
-    point: [20.3259, -6.0804, 9.6366],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqU"],
@@ -678,7 +676,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 220,
-    point: [20.304, -6.0585, 9.637],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU87", "3SWCa1Nkb6shp6EZ_X2tqU"],
@@ -693,7 +690,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 260,
-    point: [6.6909, 9.9855, 10.1142],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tss"],
@@ -708,7 +704,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 300,
-    point: [15.7545, 9.9387, 10.8167],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsi"],
@@ -723,7 +718,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 340,
-    point: [12.7842, 9.9055, 11.4448],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsk"],
@@ -738,7 +732,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 20,
-    point: [18.7882, 9.9855, 10.1163],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tso"],
@@ -753,7 +746,6 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 80,
-    point: [9.8756, 9.9772, 10.8494],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tse"],
@@ -1239,19 +1231,22 @@ function renderCollisionsList(clashes) {
 }
 
 function clashCenter(clash) {
-  // Utilise le point d'intersection reel calcule par IfcClash (p1/p2 dans
-  // clashes.json, moyenne stockee dans clash.point), pas une approximation
-  // AABB par element entier : une dalle ou un mur de plusieurs metres a un
-  // centre d'AABB tres eloigne du vrai point de croisement avec la poutre.
-  if (clash.point) return clash.point;
-  // Repli si jamais un clash n'a pas de point precalcule.
-  const aabbs = clash.entityIds.map((id) => viewer.scene.getAABB([id]));
-  const centers = aabbs.map((a) => [(a[0] + a[3]) / 2, (a[1] + a[4]) / 2, (a[2] + a[5]) / 2]);
-  return [
-    (centers[0][0] + centers[1][0]) / 2,
-    (centers[0][1] + centers[1][1]) / 2,
-    (centers[0][2] + centers[1][2]) / 2
-  ];
+  // Le point p1/p2 renvoye par IfcClash (clashes.json) est exprime dans le
+  // repere natif de l'IFC (Z-up), alors que le viewer travaille en Y-up une
+  // fois le modele charge (web-ifc/xeokit convertissent les coordonnees a
+  // l'import) : utiliser p1/p2 tel quel placait les bulles totalement hors
+  // de la maquette. A la place, on calcule le milieu de la zone de
+  // chevauchement des AABB des 2 elements impliques, directement dans le
+  // repere du viewer (meme source que le rendu de la maquette, donc fiable
+  // par construction) : plus precis qu'un simple milieu des 2 centres
+  // d'elements (mauvais pour une dalle/un mur de plusieurs metres), sans
+  // dependre d'une conversion de repere qu'on ne controle pas.
+  const [aabbA, aabbB] = clash.entityIds.map((id) => viewer.scene.getAABB([id]));
+  return [0, 1, 2].map((axis) => {
+    const min = Math.max(aabbA[axis], aabbB[axis]);
+    const max = Math.min(aabbA[axis + 3], aabbB[axis + 3]);
+    return (min + max) / 2;
+  });
 }
 
 function flyToClash(clash) {
