@@ -657,6 +657,153 @@ const CLASHES = [
     tagged: ["Vous"],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trs"],
     discussion: []
+  },
+  // 10 clashs ajoutes le 10/09 : sortie brute d'un vrai run IfcClash (mode
+  // "collision", cf tools/clash-test/) sur les 2 memes maquettes, pas
+  // retouches a la main. Servent a tester l'affichage de la liste a une
+  // echelle realiste (13 au lieu de 3) et a comparer avec les 3 clashs
+  // curates ci-dessus : statut "nouveau" par defaut, aucune zone humaine
+  // nommee (juste la paire de classes/elements IFC), aucune discussion,
+  // auteur "Detection automatique" au lieu d'une personne.
+  {
+    id: "clash-4",
+    detectionId: "structure-toiture",
+    zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2409)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 60,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trE"],
+    discussion: []
+  },
+  {
+    id: "clash-5",
+    detectionId: "structure-toiture",
+    zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2327)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 100,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2tqm"],
+    discussion: []
+  },
+  {
+    id: "clash-6",
+    detectionId: "structure-toiture",
+    zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2327)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 140,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqm"],
+    discussion: []
+  },
+  {
+    id: "clash-7",
+    detectionId: "structure-toiture",
+    zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2361)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 180,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqU"],
+    discussion: []
+  },
+  {
+    id: "clash-8",
+    detectionId: "structure-toiture",
+    zone: "Dalle béton 200mm ↔ Cornière CAE50x8 (#2361)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 220,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MU87", "3SWCa1Nkb6shp6EZ_X2tqU"],
+    discussion: []
+  },
+  {
+    id: "clash-9",
+    detectionId: "structure-toiture",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2449)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 260,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tss"],
+    discussion: []
+  },
+  {
+    id: "clash-10",
+    detectionId: "structure-toiture",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2443)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 300,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsi"],
+    discussion: []
+  },
+  {
+    id: "clash-11",
+    detectionId: "structure-toiture",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2441)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 340,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsk"],
+    discussion: []
+  },
+  {
+    id: "clash-12",
+    detectionId: "structure-toiture",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2453)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 20,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tso"],
+    discussion: []
+  },
+  {
+    id: "clash-13",
+    detectionId: "structure-toiture",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2447)",
+    disciplineA: "Structure",
+    disciplineB: "Toiture métallique",
+    severite: "À qualifier",
+    statut: "nouveau",
+    angle: 80,
+    auteur: "Détection automatique (IfcClash)",
+    tagged: [],
+    entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tse"],
+    discussion: []
   }
 ];
 
