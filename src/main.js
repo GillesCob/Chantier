@@ -448,6 +448,7 @@ navLinks.forEach((link) => {
       clearClashMarkers();
       clearClashElementColors();
       deselectEntity();
+      viewer.cameraControl.followPointer = true;
     }
     // Meme chose pour un fil de discussion reste ouvert : sinon revenir sur
     // Discussions via la navbar rouvre le meme fil au lieu de la liste.
@@ -1185,6 +1186,7 @@ function openDetection(detection) {
   renderClashMarkers(detectionClashes);
   clearClashElementColors();
   deselectEntity();
+  viewer.cameraControl.followPointer = true;
 
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
@@ -1319,8 +1321,13 @@ function flyToClash(clash) {
   viewer.cameraFlight.flyTo({ eye, look: center, up: [0, 1, 0], duration: 1.2 });
 
   // Meme effet que cliquer sur la zone de conflit dans le viewer : la
-  // camera orbite ensuite autour de ce point (pivot), pas autour du dernier
-  // point pique par l'utilisateur.
+  // camera orbite ensuite autour de ce point (pivot). "followPointer"
+  // desactive : par defaut, xeokit re-pique un nouveau pivot sous la
+  // souris a chaque debut de rotation (cf CameraControl, mousedown), donc
+  // pivotPos etait ecrase des le premier glisser-tourner ailleurs sur la
+  // maquette. Reactive en quittant la collision (goBackToDetections,
+  // navbar, ouverture d'une nouvelle detection).
+  viewer.cameraControl.followPointer = false;
   viewer.cameraControl.pivotPos = center;
 }
 
@@ -1513,6 +1520,7 @@ function goBackToDetections() {
   clearClashMarkers();
   clearClashElementColors();
   deselectEntity();
+  viewer.cameraControl.followPointer = true;
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
