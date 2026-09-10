@@ -787,11 +787,19 @@ html, body {
 
 #collisionBackBtn { align-self: flex-start; margin: 12px 14px 0; }
 
+.collision-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.collision-marker-toggle { flex-shrink: 0; margin-top: 11px; cursor: pointer; }
+
 .collision-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 8px;
   border: none;
   border-radius: 6px;

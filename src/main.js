@@ -1174,6 +1174,23 @@ function openDetection(detection) {
 
 function buildCollisionItem(clash) {
   const li = document.createElement("li");
+  li.className = "collision-item-row";
+
+  // Affiche/masque le marqueur 3D de ce clash precisement, independamment
+  // de la selection (bouton juste a cote) : utile pour ne garder visibles
+  // que les zones qui interessent quand on est sur la maquette, sans
+  // devoir passer par chaque clash un par un dans la vue 3D.
+  const toggle = document.createElement("input");
+  toggle.type = "checkbox";
+  toggle.className = "collision-marker-toggle";
+  toggle.checked = true;
+  toggle.title = "Afficher/masquer cette zone dans la maquette";
+  toggle.addEventListener("click", (e) => e.stopPropagation());
+  toggle.addEventListener("change", () => {
+    const marker = clashMarkers.get(clash.id);
+    if (marker) marker.visible = toggle.checked;
+  });
+
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "collision-item";
@@ -1198,7 +1215,7 @@ function buildCollisionItem(clash) {
   meta.append(badge, disciplines);
 
   btn.append(zone, meta);
-  li.appendChild(btn);
+  li.append(toggle, btn);
   return li;
 }
 
@@ -1280,8 +1297,8 @@ const CLASH_MARKER_COLORS = {
 };
 const CLASH_MARKER_RADIUS = 0.18;
 const CLASH_MARKER_RADIUS_ACTIVE = 0.32;
-const CLASH_MARKER_OPACITY = 0.45;
-const CLASH_MARKER_OPACITY_ACTIVE = 0.85;
+const CLASH_MARKER_OPACITY = 0.2;
+const CLASH_MARKER_OPACITY_ACTIVE = 0.55;
 
 let clashMarkerGeometry = null;
 let clashMarkerMaterial = null;
