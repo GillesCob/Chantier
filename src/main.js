@@ -19,6 +19,9 @@ const ficheSheet = document.getElementById("ficheSheet");
 const ficheSheetClose = document.getElementById("ficheSheetClose");
 const ficheSheetContent = document.getElementById("ficheSheetContent");
 const ficheSheetDocs = document.getElementById("ficheSheetDocs");
+const collisionFichePlaceholder = document.getElementById("collisionFichePlaceholder");
+const collisionFicheContent = document.getElementById("collisionFicheContent");
+const collisionFicheDocs = document.getElementById("collisionFicheDocs");
 const docModalOverlay = document.getElementById("docModalOverlay");
 const docModalClose = document.getElementById("docModalClose");
 const docModalName = document.getElementById("docModalName");
@@ -1178,6 +1181,7 @@ function openDetection(detection) {
   renderCollisionsList(detectionClashes);
   renderClashMarkers(detectionClashes);
   clearClashElementColors();
+  deselectEntity();
 
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
@@ -1314,6 +1318,11 @@ function flyToClash(clash) {
   ];
 
   viewer.cameraFlight.flyTo({ eye, look: center, up: [0, 1, 0], duration: 1.2 });
+
+  // Meme effet que cliquer sur la zone de conflit dans le viewer : la
+  // camera orbite ensuite autour de ce point (pivot), pas autour du dernier
+  // point pique par l'utilisateur.
+  viewer.cameraControl.pivotPos = center;
 }
 
 // Marqueurs 3D (spheres colorees) aux points de croisement des clashs de la
@@ -1492,6 +1501,7 @@ function goBackToDetections() {
   recenterTarget = null;
   clearClashMarkers();
   clearClashElementColors();
+  deselectEntity();
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
@@ -1819,6 +1829,13 @@ function showFiche(entity) {
   const docs = DOCS_BY_ELEMENT[entity.id] || [];
   showSelection(rows, docs);
 
+  // Meme fiche que le tiroir Viewer, dans le panneau Collision (section
+  // "Info sélection" en bas du drawer) : utile pour identifier precisement
+  // l'element rouge ou vert d'une collision selectionnee.
+  renderFicheInto(collisionFicheContent, collisionFicheDocs, rows, docs);
+  collisionFichePlaceholder.hidden = true;
+  collisionFicheContent.hidden = false;
+
   // Mobile : evite d'obliger a ouvrir le tiroir "☰ Infos" en entier juste
   // pour voir la fiche d'un element tape, une modale discrete en bas
   // d'ecran suffit (memes donnees que le tiroir).
@@ -1833,10 +1850,22 @@ function clearFiche() {
   ficheContent.hidden = true;
   ficheContent.innerHTML = "";
   ficheDocs.innerHTML = "";
+  collisionFichePlaceholder.hidden = false;
+  collisionFicheContent.hidden = true;
+  collisionFicheContent.innerHTML = "";
+  collisionFicheDocs.innerHTML = "";
   closeFicheSheet();
 }
 
 let selectedEntity = null;
+
+function deselectEntity() {
+  if (selectedEntity) {
+    selectedEntity.selected = false;
+    selectedEntity = null;
+  }
+  clearFiche();
+}
 
 // Coupe par surface : clic sur "Créer une coupe" arme le mode, le prochain
 // clic sur la maquette pose le plan a cet endroit avec la normale de la
