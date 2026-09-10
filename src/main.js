@@ -1,4 +1,4 @@
-import { Viewer, WebIFCLoaderPlugin, XKTLoaderPlugin, SectionPlanesPlugin } from "@xeokit/xeokit-sdk";
+import { Viewer, WebIFCLoaderPlugin, XKTLoaderPlugin, SectionPlanesPlugin, Mesh, ReadableGeometry, PhongMaterial, buildSphereGeometry } from "@xeokit/xeokit-sdk";
 import * as WebIFC from "web-ifc";
 
 const loadingOverlay = document.getElementById("loadingOverlay");
@@ -1215,7 +1215,9 @@ function openDetection(detection) {
   applyVisibility();
   renderMaquetteRows(collisionMaquettesList, subset);
 
-  renderCollisionsList(CLASHES.filter((c) => c.detectionId === detection.id));
+  const detectionClashes = CLASHES.filter((c) => c.detectionId === detection.id);
+  renderCollisionsList(detectionClashes);
+  renderClashMarkers(detectionClashes);
 
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
@@ -1282,16 +1284,20 @@ function renderCollisionsList(clashes) {
   }
 }
 
-function flyToClash(clash) {
+function clashCenter(clash) {
   // Centre sur le milieu des 2 elements impliques (approximation du point de
   // croisement, pas de vraie geometrie d'intersection calculee pour ce POC).
   const aabbs = clash.entityIds.map((id) => viewer.scene.getAABB([id]));
   const centers = aabbs.map((a) => [(a[0] + a[3]) / 2, (a[1] + a[4]) / 2, (a[2] + a[5]) / 2]);
-  const center = [
+  return [
     (centers[0][0] + centers[1][0]) / 2,
     (centers[0][1] + centers[1][1]) / 2,
     (centers[0][2] + centers[1][2]) / 2
   ];
+}
+
+function flyToClash(clash) {
+  const center = clashCenter(clash);
   // Distance fixe et courte (unites du modele = metres) plutot qu'un calcul
   // base sur la taille des elements : un poteau/une poutre peut etre long,
   // mais on veut un plan rapproche sur le point de croisement, pas sur
@@ -1306,6 +1312,70 @@ function flyToClash(clash) {
   ];
 
   viewer.cameraFlight.flyTo({ eye, look: center, up: [0, 1, 0], duration: 1.2 });
+}
+
+// Marqueurs 3D (spheres colorees) aux points de croisement des clashs de la
+// detection ouverte. Geometrie/materiau partages (1 seul PhongMaterial gris
+// neutre), la couleur par statut est appliquee via `mesh.colorize` par
+// instance plutot que de creer un materiau par couleur. Non pickable :
+// une petite sphere ne doit jamais voler le clic destine a un element reel
+// de la maquette (panneau proprietes).
+const CLASH_MARKER_COLORS = {
+  nouveau: [0.941, 0.533, 0.243], // #f0883e
+  confirme: [0.973, 0.318, 0.286], // #f85149
+  ecarte: [0.44, 0.47, 0.5] // gris, cf var(--muted)
+};
+const CLASH_MARKER_RADIUS = 0.18;
+const CLASH_MARKER_RADIUS_ACTIVE = 0.32;
+
+let clashMarkerGeometry = null;
+let clashMarkerMaterial = null;
+const clashMarkers = new Map(); // clash.id -> Mesh
+let activeClashMarkerId = null;
+
+function ensureClashMarkerAssets() {
+  if (clashMarkerGeometry) return;
+  clashMarkerGeometry = new ReadableGeometry(viewer.scene, buildSphereGeometry({
+    radius: 1, heightSegments: 12, widthSegments: 12
+  }));
+  clashMarkerMaterial = new PhongMaterial(viewer.scene, { diffuse: [1, 1, 1], emissive: [1, 1, 1] });
+}
+
+function clearClashMarkers() {
+  clashMarkers.forEach((mesh) => mesh.destroy());
+  clashMarkers.clear();
+  activeClashMarkerId = null;
+}
+
+function renderClashMarkers(clashes) {
+  clearClashMarkers();
+  ensureClashMarkerAssets();
+  clashes.forEach((clash) => {
+    const center = clashCenter(clash);
+    const mesh = new Mesh(viewer.scene, {
+      geometry: clashMarkerGeometry,
+      material: clashMarkerMaterial,
+      position: center,
+      scale: [CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS],
+      colorize: CLASH_MARKER_COLORS[clash.statut] || CLASH_MARKER_COLORS.nouveau,
+      pickable: false
+    });
+    clashMarkers.set(clash.id, mesh);
+  });
+}
+
+// Grossit le marqueur du clash actuellement selectionne pour le reperer
+// dans le nuage de spheres, remet l'ancien a sa taille normale.
+function highlightClashMarker(clash) {
+  if (activeClashMarkerId && clashMarkers.has(activeClashMarkerId)) {
+    const previous = clashMarkers.get(activeClashMarkerId);
+    previous.scale = [CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS];
+  }
+  const current = clashMarkers.get(clash.id);
+  if (current) {
+    current.scale = [CLASH_MARKER_RADIUS_ACTIVE, CLASH_MARKER_RADIUS_ACTIVE, CLASH_MARKER_RADIUS_ACTIVE];
+  }
+  activeClashMarkerId = clash.id;
 }
 
 let currentDiscussionThread = null;
@@ -1362,6 +1432,7 @@ function showThreadDiscussion(thread) {
 
 function selectClash(clash) {
   flyToClash(clash);
+  highlightClashMarker(clash);
   recenterTarget = () => flyToClash(clash);
   showThreadDiscussion(clash);
 }
@@ -1387,6 +1458,7 @@ function goBackToDetections() {
   collisionRecap.hidden = false;
   viewViewer.insertBefore(viewerWrap, infoPanel);
   recenterTarget = null;
+  clearClashMarkers();
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
