@@ -594,14 +594,16 @@ const MAQUETTES = [
   { id: "cea", src: "/models/Maquette_CEA.xkt", label: "Maquette CEA", color: "#a371f7", format: "xkt", shown: true }
 ];
 
-// Detections + clashs simules (pas de vrai moteur de detection geometrique
-// pour ce POC). guid des paires structure/toit verifiees par script (AABB
-// des 2 elements reellement en intersection, cf script Node jetable du
-// 04/09, distance 0.000m mesuree), pas choisies au hasard : le "zoom sur la
-// collision" doit cibler un vrai point de croisement, pas de l'espace vide.
-// Statuts (nouveau/confirme/ecarte) : reflete le champ `statut` deja prevu
-// dans le CDC (carte Detection de conflits), pas piloté par un vrai
-// recalcul de diff entre versions pour cette demo.
+// Detections + clashs : sortie brute d'un vrai run IfcClash (mode
+// "collision", cf tools/clash-test/run_clash.py) sur Projet_structure.ifc
+// vs Toit_Metal_2.ifc, rien retouche/invente a la main (10/09). Chaque
+// entree correspond a un resultat exact du fichier tools/clash-test/
+// clashes.json : entityIds = a_global_id/b_global_id, point = milieu de
+// p1/p2 (le point de croisement precis calcule par IfcClash lui-meme, pas
+// une approximation par AABB), zone = a_name/b_name reformules en francais
+// (contenu deja present dans le fichier, pas une invention), statut
+// "nouveau" et auteur "Detection automatique" par defaut car IfcClash ne
+// produit ni triage humain ni conversation, uniquement de la geometrie.
 const DETECTIONS = [
   { id: "structure-toiture", modeles: ["archi", "toit"], label: "Structure ↔ Toiture métallique" }
 ];
@@ -610,77 +612,20 @@ const CLASHES = [
   {
     id: "clash-1",
     detectionId: "structure-toiture",
-    zone: "Poteau / poutre toiture, zone nord",
-    disciplineA: "Structure",
-    disciplineB: "Toiture métallique",
-    severite: "Bloquant",
-    statut: "nouveau",
-    angle: 40,
-    auteur: "Julie Martin (BE Structure)",
-    tagged: ["Vous", "Karim Haddad (Charpente)"],
-    entityIds: ["0w5mREx295pe_ygZN$MU87", "3SWCa1Nkb6shp6EZ_X2tqm"],
-    discussion: [
-      { auteur: "Julie Martin (BE Structure)", texte: "Le poteau intersecte la panne de toiture à cet endroit, à revoir avec le charpentier." },
-      { auteur: "Karim Haddad (Charpente)", texte: "Confirmé, on décale la panne de 15 cm côté nord." }
-    ]
-  },
-  {
-    id: "clash-2",
-    detectionId: "structure-toiture",
-    zone: "Membrure / poteau, zone est",
-    disciplineA: "Structure",
-    disciplineB: "Toiture métallique",
-    severite: "Moyen",
-    statut: "confirme",
-    angle: 170,
-    auteur: "Karim Haddad (Charpente)",
-    tagged: ["Vous"],
-    entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2trE"],
-    discussion: [
-      { auteur: "Julie Martin (BE Structure)", texte: "Détection remontée sur la membrure est, à côté du poteau de refend." },
-      { auteur: "Karim Haddad (Charpente)", texte: "Léger recouvrement, sans impact structurel." },
-      { auteur: "Julie Martin (BE Structure)", texte: "Confirmé de mon côté, la tolérance de pose reste dans la marge acceptée." },
-      { auteur: "Sofia Benali (Coordination BIM)", texte: "Merci, je marque ce clash comme confirmé/traité dans le suivi." },
-      { auteur: "Karim Haddad (Charpente)", texte: "Validé, pas d'action nécessaire." }
-    ]
-  },
-  {
-    id: "clash-3",
-    detectionId: "structure-toiture",
-    zone: "Poteau / poutre toiture, zone sud",
-    disciplineA: "Structure",
-    disciplineB: "Toiture métallique",
-    severite: "Faible",
-    statut: "ecarte",
-    angle: 280,
-    auteur: "Sofia Benali (Coordination BIM)",
-    tagged: ["Vous"],
-    entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trs"],
-    discussion: []
-  },
-  // 10 clashs ajoutes le 10/09 : sortie brute d'un vrai run IfcClash (mode
-  // "collision", cf tools/clash-test/) sur les 2 memes maquettes, pas
-  // retouches a la main. Servent a tester l'affichage de la liste a une
-  // echelle realiste (13 au lieu de 3) et a comparer avec les 3 clashs
-  // curates ci-dessus : statut "nouveau" par defaut, aucune zone humaine
-  // nommee (juste la paire de classes/elements IFC), aucune discussion,
-  // auteur "Detection automatique" au lieu d'une personne.
-  {
-    id: "clash-4",
-    detectionId: "structure-toiture",
     zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2409)",
     disciplineA: "Structure",
     disciplineB: "Toiture métallique",
     severite: "À qualifier",
     statut: "nouveau",
     angle: 60,
+    point: [5.0267, 6.4626, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trE"],
     discussion: []
   },
   {
-    id: "clash-5",
+    id: "clash-2",
     detectionId: "structure-toiture",
     zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2327)",
     disciplineA: "Structure",
@@ -688,13 +633,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 100,
+    point: [5.0576, 1.4626, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2tqm"],
     discussion: []
   },
   {
-    id: "clash-6",
+    id: "clash-3",
     detectionId: "structure-toiture",
     zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2327)",
     disciplineA: "Structure",
@@ -702,13 +648,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 140,
+    point: [20.6066, 1.4642, 9.65],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqm"],
     discussion: []
   },
   {
-    id: "clash-7",
+    id: "clash-4",
     detectionId: "structure-toiture",
     zone: "Dalle béton 160mm ↔ Cornière CAE50x8 (#2361)",
     disciplineA: "Structure",
@@ -716,13 +663,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 180,
+    point: [20.3259, -6.0804, 9.6366],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqU"],
     discussion: []
   },
   {
-    id: "clash-8",
+    id: "clash-5",
     detectionId: "structure-toiture",
     zone: "Dalle béton 200mm ↔ Cornière CAE50x8 (#2361)",
     disciplineA: "Structure",
@@ -730,13 +678,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 220,
+    point: [20.304, -6.0585, 9.637],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU87", "3SWCa1Nkb6shp6EZ_X2tqU"],
     discussion: []
   },
   {
-    id: "clash-9",
+    id: "clash-6",
     detectionId: "structure-toiture",
     zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2449)",
     disciplineA: "Structure",
@@ -744,13 +693,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 260,
+    point: [6.6909, 9.9855, 10.1142],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tss"],
     discussion: []
   },
   {
-    id: "clash-10",
+    id: "clash-7",
     detectionId: "structure-toiture",
     zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2443)",
     disciplineA: "Structure",
@@ -758,13 +708,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 300,
+    point: [15.7545, 9.9387, 10.8167],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsi"],
     discussion: []
   },
   {
-    id: "clash-11",
+    id: "clash-8",
     detectionId: "structure-toiture",
     zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2441)",
     disciplineA: "Structure",
@@ -772,13 +723,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 340,
+    point: [12.7842, 9.9055, 11.4448],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsk"],
     discussion: []
   },
   {
-    id: "clash-12",
+    id: "clash-9",
     detectionId: "structure-toiture",
     zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2453)",
     disciplineA: "Structure",
@@ -786,13 +738,14 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 20,
+    point: [18.7882, 9.9855, 10.1163],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tso"],
     discussion: []
   },
   {
-    id: "clash-13",
+    id: "clash-10",
     detectionId: "structure-toiture",
     zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2447)",
     disciplineA: "Structure",
@@ -800,6 +753,7 @@ const CLASHES = [
     severite: "À qualifier",
     statut: "nouveau",
     angle: 80,
+    point: [9.8756, 9.9772, 10.8494],
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tse"],
@@ -1285,8 +1239,12 @@ function renderCollisionsList(clashes) {
 }
 
 function clashCenter(clash) {
-  // Centre sur le milieu des 2 elements impliques (approximation du point de
-  // croisement, pas de vraie geometrie d'intersection calculee pour ce POC).
+  // Utilise le point d'intersection reel calcule par IfcClash (p1/p2 dans
+  // clashes.json, moyenne stockee dans clash.point), pas une approximation
+  // AABB par element entier : une dalle ou un mur de plusieurs metres a un
+  // centre d'AABB tres eloigne du vrai point de croisement avec la poutre.
+  if (clash.point) return clash.point;
+  // Repli si jamais un clash n'a pas de point precalcule.
   const aabbs = clash.entityIds.map((id) => viewer.scene.getAABB([id]));
   const centers = aabbs.map((a) => [(a[0] + a[3]) / 2, (a[1] + a[4]) / 2, (a[2] + a[5]) / 2]);
   return [
@@ -1327,6 +1285,8 @@ const CLASH_MARKER_COLORS = {
 };
 const CLASH_MARKER_RADIUS = 0.18;
 const CLASH_MARKER_RADIUS_ACTIVE = 0.32;
+const CLASH_MARKER_OPACITY = 0.45;
+const CLASH_MARKER_OPACITY_ACTIVE = 0.85;
 
 let clashMarkerGeometry = null;
 let clashMarkerMaterial = null;
@@ -1358,6 +1318,7 @@ function renderClashMarkers(clashes) {
       position: center,
       scale: [CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS],
       colorize: CLASH_MARKER_COLORS[clash.statut] || CLASH_MARKER_COLORS.nouveau,
+      opacity: CLASH_MARKER_OPACITY,
       pickable: false
     });
     clashMarkers.set(clash.id, mesh);
@@ -1370,10 +1331,12 @@ function highlightClashMarker(clash) {
   if (activeClashMarkerId && clashMarkers.has(activeClashMarkerId)) {
     const previous = clashMarkers.get(activeClashMarkerId);
     previous.scale = [CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS];
+    previous.opacity = CLASH_MARKER_OPACITY;
   }
   const current = clashMarkers.get(clash.id);
   if (current) {
     current.scale = [CLASH_MARKER_RADIUS_ACTIVE, CLASH_MARKER_RADIUS_ACTIVE, CLASH_MARKER_RADIUS_ACTIVE];
+    current.opacity = CLASH_MARKER_OPACITY_ACTIVE;
   }
   activeClashMarkerId = clash.id;
 }
