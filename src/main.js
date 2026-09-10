@@ -445,6 +445,9 @@ navLinks.forEach((link) => {
     if (!collisionDetail.hidden) {
       collisionDetail.hidden = true;
       collisionRecap.hidden = false;
+      clearClashMarkers();
+      clearClashElementColors();
+      deselectEntity();
     }
     // Meme chose pour un fil de discussion reste ouvert : sinon revenir sur
     // Discussions via la navbar rouvre le meme fil au lieu de la liste.
