@@ -601,14 +601,14 @@ const MAQUETTES = [
 // "collision", cf tools/clash-test/run_clash.py) sur Projet_structure.ifc
 // vs Toit_Metal_2.ifc, rien retouche/invente a la main (10/09). Chaque
 // entree correspond a un resultat exact du fichier tools/clash-test/
-// clashes.json : entityIds = a_global_id/b_global_id (le point p1/p2 du
-// fichier n'est pas repris ici, repere Z-up d'IfcClash different du Y-up du
-// viewer une fois le modele charge ; la position 3D du marqueur est
-// recalculee depuis le viewer lui-meme, cf clashCenter), zone = a_name/
-// b_name reformules en francais (contenu deja present dans le fichier, pas
-// une invention), statut "nouveau" et auteur "Detection automatique" par
-// defaut car IfcClash ne produit ni triage humain ni conversation,
-// uniquement de la geometrie.
+// clashes.json : entityIds = a_global_id/b_global_id, ifcPoint = milieu de
+// p1/p2 (le point de contact reel calcule par IfcClash, repris tel quel,
+// converti en repere Y-up seulement au moment de l'affichage, cf
+// clashCenter/ifcPointToViewer), zone = a_name/b_name reformules en
+// francais (contenu deja present dans le fichier, pas une invention),
+// statut "nouveau" et auteur "Detection automatique" par defaut car
+// IfcClash ne produit ni triage humain ni conversation, uniquement de la
+// geometrie.
 const DETECTIONS = [
   { id: "structure-toiture", modeles: ["archi", "toit"], label: "Structure ↔ Toiture métallique" }
 ];
@@ -626,6 +626,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2trE"],
+    ifcPoint: [5.0267, 6.4626, 9.65],
     discussion: []
   },
   {
@@ -640,6 +641,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9f", "3SWCa1Nkb6shp6EZ_X2tqm"],
+    ifcPoint: [5.0576, 1.4626, 9.65],
     discussion: []
   },
   {
@@ -654,6 +656,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqm"],
+    ifcPoint: [20.6066, 1.4642, 9.65],
     discussion: []
   },
   {
@@ -668,6 +671,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU9m", "3SWCa1Nkb6shp6EZ_X2tqU"],
+    ifcPoint: [20.3259, -6.0804, 9.6366],
     discussion: []
   },
   {
@@ -682,6 +686,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MU87", "3SWCa1Nkb6shp6EZ_X2tqU"],
+    ifcPoint: [20.304, -6.0585, 9.637],
     discussion: []
   },
   {
@@ -696,6 +701,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tss"],
+    ifcPoint: [6.6909, 9.9855, 10.1142],
     discussion: []
   },
   {
@@ -710,6 +716,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsi"],
+    ifcPoint: [15.7545, 9.9387, 10.8167],
     discussion: []
   },
   {
@@ -724,6 +731,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tsk"],
+    ifcPoint: [12.7842, 9.9055, 11.4448],
     discussion: []
   },
   {
@@ -738,6 +746,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tso"],
+    ifcPoint: [18.7882, 9.9855, 10.1163],
     discussion: []
   },
   {
@@ -752,6 +761,7 @@ const CLASHES = [
     auteur: "Détection automatique (IfcClash)",
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tse"],
+    ifcPoint: [9.8756, 9.9772, 10.8494],
     discussion: []
   }
 ];
@@ -1255,17 +1265,31 @@ function renderCollisionsList(clashes) {
   }
 }
 
+// Le repli "milieu de la zone de chevauchement des AABB" (utilise avant le
+// 10/09) s'est revele faux pour des elements longs/diagonaux (ex. cornieres
+// de toiture) : l'AABB d'une corniere en diagonale couvre une zone bien
+// plus large que sa geometrie reelle, donc son chevauchement avec l'AABB
+// d'une grande dalle n'a plus rien a voir avec le point de contact reel.
+// Verifie dans le code source de xeokit (WebIFCLoaderPlugin.load, package
+// @xeokit/xeokit-sdk) : les positions issues de web-ifc (GetVertexArray)
+// sont copiees telles quelles dans le SceneModel, sans aucune rotation
+// d'axe appliquee cote xeokit. Comme la maquette s'affiche bien debout
+// (toiture en haut), la conversion Z-up (repere natif IFC, utilise par
+// ifcopenshell/IfcClash) -> Y-up (convention du viewer) est necessairement
+// faite par web-ifc lui-meme au moment de generer la geometrie. Conversion
+// standard (rotation -90 deg autour de X) : x inchange, y_viewer = z_ifc,
+// z_viewer = -y_ifc.
+function ifcPointToViewer(p) {
+  return [p[0], p[2], -p[1]];
+}
+
 function clashCenter(clash) {
-  // Le point p1/p2 renvoye par IfcClash (clashes.json) est exprime dans le
-  // repere natif de l'IFC (Z-up), alors que le viewer travaille en Y-up une
-  // fois le modele charge (web-ifc/xeokit convertissent les coordonnees a
-  // l'import) : utiliser p1/p2 tel quel placait les bulles totalement hors
-  // de la maquette. A la place, on calcule le milieu de la zone de
-  // chevauchement des AABB des 2 elements impliques, directement dans le
-  // repere du viewer (meme source que le rendu de la maquette, donc fiable
-  // par construction) : plus precis qu'un simple milieu des 2 centres
-  // d'elements (mauvais pour une dalle/un mur de plusieurs metres), sans
-  // dependre d'une conversion de repere qu'on ne controle pas.
+  // Point p1/p2 reel calcule par IfcClash (clashes.json, moyenne stockee
+  // dans clash.ifcPoint), converti dans le repere du viewer : le vrai point
+  // de contact geometrique, quelle que soit la forme/longueur des 2
+  // elements, contrairement a une approximation par boite englobante.
+  if (clash.ifcPoint) return ifcPointToViewer(clash.ifcPoint);
+  // Repli si jamais un clash n'a pas de point IfcClash precalcule.
   const [aabbA, aabbB] = clash.entityIds.map((id) => viewer.scene.getAABB([id]));
   return [0, 1, 2].map((axis) => {
     const min = Math.max(aabbA[axis], aabbB[axis]);
