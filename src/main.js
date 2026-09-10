@@ -448,7 +448,6 @@ navLinks.forEach((link) => {
       clearClashMarkers();
       clearClashElementColors();
       deselectEntity();
-      activeClashPivot = null;
     }
     // Meme chose pour un fil de discussion reste ouvert : sinon revenir sur
     // Discussions via la navbar rouvre le meme fil au lieu de la liste.
@@ -1186,7 +1185,6 @@ function openDetection(detection) {
   renderClashMarkers(detectionClashes);
   clearClashElementColors();
   deselectEntity();
-  activeClashPivot = null;
 
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
@@ -1319,18 +1317,6 @@ function flyToClash(clash) {
   ];
 
   viewer.cameraFlight.flyTo({ eye, look: center, up: [0, 1, 0], duration: 1.2 });
-
-  // Meme effet que cliquer sur la zone de conflit dans le viewer : la
-  // camera orbite ensuite autour de ce point (pivot). Desactiver
-  // "followPointer" cassait purement et simplement la rotation (xeokit
-  // n'appelle son demarrage de pivot, startPivot(), que dans le bloc
-  // conditionne par followPointer). A la place, on laisse xeokit re-piquer
-  // son pivot normalement a chaque mousedown, puis on l'ecrase juste apres
-  // par le vrai centre du clash (ecouteur mousedown plus bas, ajoute apres
-  // celui de xeokit donc execute apres) : la rotation marche partout sur
-  // le canvas, mais pivote toujours sur la collision selectionnee.
-  viewer.cameraControl.pivotPos = center;
-  activeClashPivot = center;
 }
 
 // Marqueurs 3D (spheres colorees) aux points de croisement des clashs de la
@@ -1413,12 +1399,6 @@ function highlightClashMarker(clash) {
 const CLASH_ELEMENT_COLOR_A = [1, 0.2, 0.2];
 const CLASH_ELEMENT_COLOR_B = [0.25, 1, 0.3];
 let colorizedClashEntityIds = [];
-
-// Centre du clash actuellement selectionne, reimpose comme pivot de camera
-// a chaque mousedown (cf ecouteur plus bas) tant qu'une collision est
-// affichee : null en dehors du contexte Collision, ou quand aucun clash
-// n'est encore selectionne dans la detection ouverte.
-let activeClashPivot = null;
 
 function clearClashElementColors() {
   if (colorizedClashEntityIds.length === 0) return;
@@ -1528,7 +1508,6 @@ function goBackToDetections() {
   clearClashMarkers();
   clearClashElementColors();
   deselectEntity();
-  activeClashPivot = null;
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
@@ -2003,19 +1982,6 @@ function handleViewerPick(canvasCoords) {
 }
 
 viewer.scene.input.on("mouseclicked", handleViewerPick);
-
-// Reimpose le pivot du clash selectionne juste apres que xeokit ait fini
-// de re-piquer le sien (CameraControl re-pique un pivot sous le pointeur
-// a chaque mousedown/touchstart, cf CameraControl). Ajoute apres le
-// listener interne de xeokit (Viewer deja construit plus haut dans ce
-// fichier) : les listeners s'executent dans leur ordre d'ajout sur un meme
-// evenement, celui-ci s'applique donc en dernier. Ne fait rien si aucun
-// clash n'est selectionne (activeClashPivot null).
-function reapplyClashPivot() {
-  if (activeClashPivot) viewer.cameraControl.pivotPos = activeClashPivot;
-}
-viewerCanvas.addEventListener("mousedown", reapplyClashPivot);
-viewerCanvas.addEventListener("touchstart", reapplyClashPivot, { passive: true });
 
 // "mouseclicked" de xeokit ne se declenche jamais au tactile (aucune souris
 // n'est impliquee) : sur mobile, un tap ne selectionnait donc jamais rien.
