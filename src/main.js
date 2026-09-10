@@ -1167,6 +1167,7 @@ function openDetection(detection) {
   const detectionClashes = CLASHES.filter((c) => c.detectionId === detection.id);
   renderCollisionsList(detectionClashes);
   renderClashMarkers(detectionClashes);
+  clearClashElementColors();
 
   collisionDiscussion.hidden = true;
   discussionMessages.innerHTML = "";
@@ -1360,6 +1361,30 @@ function highlightClashMarker(clash) {
   activeClashMarkerId = clash.id;
 }
 
+// Colore les 2 vrais elements en collision (rouge/vert) uniquement quand on
+// clique sur une collision precise (jamais dans la vue recap des
+// detections). clash.entityIds vient directement de IfcClash (ordre
+// [a_global_id, b_global_id] du resultat, cf clashes.json) : le role
+// element 1/element 2 est celui du moteur de detection, pas un choix fait
+// clash par clash ici.
+const CLASH_ELEMENT_COLOR_A = [1, 0.2, 0.2];
+const CLASH_ELEMENT_COLOR_B = [0.25, 1, 0.3];
+let colorizedClashEntityIds = [];
+
+function clearClashElementColors() {
+  if (colorizedClashEntityIds.length === 0) return;
+  viewer.scene.setObjectsColorized(colorizedClashEntityIds, null);
+  colorizedClashEntityIds = [];
+}
+
+function highlightClashElements(clash) {
+  clearClashElementColors();
+  const [idA, idB] = clash.entityIds;
+  viewer.scene.setObjectsColorized([idA], CLASH_ELEMENT_COLOR_A);
+  viewer.scene.setObjectsColorized([idB], CLASH_ELEMENT_COLOR_B);
+  colorizedClashEntityIds = [idA, idB];
+}
+
 let currentDiscussionThread = null;
 
 function renderDiscussionMessages(thread) {
@@ -1415,6 +1440,7 @@ function showThreadDiscussion(thread) {
 function selectClash(clash) {
   flyToClash(clash);
   highlightClashMarker(clash);
+  highlightClashElements(clash);
   recenterTarget = () => flyToClash(clash);
   showThreadDiscussion(clash);
 }
@@ -1441,6 +1467,7 @@ function goBackToDetections() {
   viewViewer.insertBefore(viewerWrap, infoPanel);
   recenterTarget = null;
   clearClashMarkers();
+  clearClashElementColors();
   restoreAllModelsVisible();
 }
 collisionBackBtn.addEventListener("click", goBackToDetections);
