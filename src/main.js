@@ -1219,12 +1219,8 @@ function buildCollisionItem(clash) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "collision-item";
-  btn.addEventListener("click", () => {
-    collisionsList.querySelectorAll(".collision-item").forEach((el) => el.classList.remove("active"));
-    btn.classList.add("active");
-    selectClash(clash);
-    closeCollisionInfoPanelDrawer();
-  });
+  btn.dataset.clashId = clash.id;
+  btn.addEventListener("click", () => activateClash(clash));
 
   const zone = document.createElement("span");
   zone.className = "collision-zone";
@@ -1331,9 +1327,10 @@ function flyToClash(clash) {
 // Marqueurs 3D (spheres colorees) aux points de croisement des clashs de la
 // detection ouverte. Geometrie/materiau partages (1 seul PhongMaterial gris
 // neutre), la couleur par statut est appliquee via `mesh.colorize` par
-// instance plutot que de creer un materiau par couleur. Non pickable :
-// une petite sphere ne doit jamais voler le clic destine a un element reel
-// de la maquette (panneau proprietes).
+// instance plutot que de creer un materiau par couleur. Pickable (10/09) :
+// id prefixe CLASH_MARKER_ID_PREFIX, repere dans handleViewerPick pour
+// activer le meme clash que dans la liste au clic sur sa bulle.
+const CLASH_MARKER_ID_PREFIX = "clash-marker-";
 const CLASH_MARKER_COLORS = {
   nouveau: [0.941, 0.533, 0.243], // #f0883e
   confirme: [0.973, 0.318, 0.286], // #f85149
@@ -1369,13 +1366,14 @@ function renderClashMarkers(clashes) {
   clashes.forEach((clash) => {
     const center = clashCenter(clash);
     const mesh = new Mesh(viewer.scene, {
+      id: CLASH_MARKER_ID_PREFIX + clash.id,
       geometry: clashMarkerGeometry,
       material: clashMarkerMaterial,
       position: center,
       scale: [CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS, CLASH_MARKER_RADIUS],
       colorize: CLASH_MARKER_COLORS[clash.statut] || CLASH_MARKER_COLORS.nouveau,
       opacity: CLASH_MARKER_OPACITY,
-      pickable: false
+      pickable: true
     });
     clashMarkers.set(clash.id, mesh);
   });
@@ -1479,6 +1477,16 @@ function selectClash(clash) {
   highlightClashElements(clash);
   recenterTarget = () => flyToClash(clash);
   showThreadDiscussion(clash);
+}
+
+// Point d'entree commun pour selectionner un clash, que ce soit via la
+// ligne de la liste ou un clic direct sur sa bulle 3D dans le viewer.
+function activateClash(clash) {
+  collisionsList.querySelectorAll(".collision-item").forEach((el) => {
+    el.classList.toggle("active", el.dataset.clashId === clash.id);
+  });
+  selectClash(clash);
+  closeCollisionInfoPanelDrawer();
 }
 
 // Titre tronque (CSS) si trop long pour la largeur du panneau discussion :
@@ -1955,6 +1963,14 @@ function handleViewerPick(canvasCoords) {
   }
 
   const hit = viewer.scene.pick({ canvasPos: canvasCoords });
+
+  // Clic sur une bulle de collision : meme effet que cliquer la ligne dans
+  // la liste, pas une selection d'element classique (fiche/proprietes).
+  if (hit && hit.entity && typeof hit.entity.id === "string" && hit.entity.id.startsWith(CLASH_MARKER_ID_PREFIX)) {
+    const clash = CLASHES.find((c) => c.id === hit.entity.id.slice(CLASH_MARKER_ID_PREFIX.length));
+    if (clash) activateClash(clash);
+    return;
+  }
 
   if (selectedEntity) {
     selectedEntity.selected = false;
