@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="https://gillescobigo.com/images/logo-gc-white.png">
+<script>
+  (function () {
+    var fromUrl = new URLSearchParams(window.location.search).get('theme');
+    var stored = localStorage.getItem('vault-theme');
+    var theme = fromUrl || stored;
+    if (theme) { document.documentElement.setAttribute('data-theme', theme); }
+  })();
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var isDark = current ? current === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('vault-theme', next);
+  }
+</script>
+<title>Exploration BIM chantier - Reunion de synthese</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --border: #e2e5ea; --text: #1c2333; --muted: #6b7280;
+    --accent: #4f8cff; --accent-bg: rgba(79,140,255,0.12);
+    --b1: #4f8cff; --b1-bg: rgba(79,140,255,0.14);
+    --b2: #8957e5; --b2-bg: rgba(137,87,229,0.14);
+    --b3: #2ea043; --b3-bg: rgba(46,160,67,0.14);
+    --b4: #d4820a; --b4-bg: rgba(212,130,10,0.14);
+    --red: #e5484d; --red-bg: rgba(229,72,77,0.12);
+    --amber: #d4820a; --amber-bg: rgba(212,130,10,0.12);
+    --green: #2ea043; --green-bg: rgba(46,160,67,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0f1420; --panel: #171d2b; --border: #2a3345; --text: #e6e9f0; --muted: #8b94a8; }
+  }
+  :root[data-theme="dark"] { --bg: #0f1420; --panel: #171d2b; --border: #2a3345; --text: #e6e9f0; --muted: #8b94a8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  h1, h2, h3 { font-family: "Poppins", "Inter", sans-serif; }
+  .theme-toggle { position: fixed; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  .topbar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; font-size: 13.5px; font-weight: 600; }
+  .topbar span { font-weight: 400; color: var(--muted); }
+
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 60px; }
+  .page-header { margin-bottom: 6px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .back-link { display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--muted); text-decoration: none; margin: 0 0 14px; }
+  .back-link:hover { color: var(--accent); }
+  .page-title { font-size: 19px; font-weight: 700; margin: 0 0 3px; }
+  .page-meeting-meta { font-size: 11.5px; color: var(--muted); margin: 0; }
+  .page-meeting-meta .meeting-badge { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; vertical-align: 1px; }
+  .page-meeting-meta .meeting-badge.a-venir { background: var(--accent-bg); color: var(--accent); }
+  .page-meeting-meta .meeting-badge.terminee { background: var(--green-bg); color: var(--green); }
+  .meeting-summary { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 14px 0 4px; }
+  .meeting-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+  .meeting-summary-title { font-size: 12.5px; font-weight: 700; margin: 0; }
+  .meeting-summary-sent { font-size: 10.5px; color: var(--muted); }
+  .meeting-summary-stats { display: flex; gap: 16px; margin: 0 0 12px; flex-wrap: wrap; }
+  .meeting-summary-stat { font-size: 11.5px; color: var(--muted); }
+  .meeting-summary-stat b { color: var(--text); font-size: 15px; display: block; }
+  .meeting-summary-report { font-size: 11.5px; line-height: 1.6; color: var(--text); white-space: pre-line; background: var(--bg); border-radius: 8px; padding: 10px 12px; max-height: 160px; overflow-y: auto; }
+  .topic-status-btn[disabled] { cursor: default; opacity: .85; }
+  .page-sub { font-size: 12.5px; color: var(--muted); margin: 0; }
+  .btn-add { font-family: inherit; font-size: 12.5px; font-weight: 600; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 14px; cursor: pointer; flex-shrink: 0; }
+  .page-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-outline { font-family: inherit; font-size: 12.5px; font-weight: 600; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; cursor: pointer; flex-shrink: 0; }
+
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0 4px; }
+  .filter-chip { font-family: inherit; font-size: 11.5px; font-weight: 600; border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter-chip .count { opacity: .75; margin-left: 3px; }
+
+  .add-panel { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 12px 0 6px; }
+  .add-panel.open { display: block; }
+  .add-panel-title { font-size: 12.5px; font-weight: 700; margin: 0 0 10px; }
+  .add-field { margin-bottom: 10px; }
+  .add-field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .add-field input[type="text"], .add-field select, .add-field textarea { width: 100%; font-family: inherit; font-size: 12.5px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; color: var(--text); }
+  .add-field textarea { resize: vertical; min-height: 52px; line-height: 1.4; }
+  .add-buildings { display: flex; gap: 6px; flex-wrap: wrap; }
+  .add-building-toggle { font-family: inherit; font-size: 11.5px; font-weight: 600; border: 1px solid var(--border); background: var(--bg); color: var(--muted); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+  .add-building-toggle.on { color: #fff; border-color: transparent; }
+  .add-building-toggle[data-b="1"].on { background: var(--b1); }
+  .add-building-toggle[data-b="2"].on { background: var(--b2); }
+  .add-building-toggle[data-b="3"].on { background: var(--b3); }
+  .add-building-toggle[data-b="4"].on { background: var(--b4); }
+  .add-hint { font-size: 10.5px; color: var(--muted); margin: 4px 0 0; }
+  .add-actors-row { display: flex; gap: 6px; }
+  .add-actors-row input { flex: 1; }
+  .add-actors-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .add-actor-chip { font-size: 11px; font-weight: 600; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px 6px 4px 10px; display: inline-flex; align-items: center; gap: 5px; }
+  .add-actor-remove { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; line-height: 1; padding: 0; }
+  .add-link-toggle { display: flex; gap: 6px; }
+  .add-link-btn { flex: 1; font-family: inherit; font-size: 11.5px; font-weight: 600; border: 1px solid var(--border); background: var(--bg); color: var(--muted); border-radius: 7px; padding: 7px; cursor: pointer; }
+  .add-link-btn.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .add-viewer { margin-top: 8px; border-radius: 8px; overflow: hidden; height: 160px; background: #0b0f18; }
+  .add-viewer img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .add-viewer-hint { font-size: 10.5px; color: var(--muted); margin: 4px 0 0; }
+  .add-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .btn-secondary { font-family: inherit; font-size: 12px; font-weight: 600; background: none; color: var(--muted); border: none; cursor: pointer; padding: 7px 10px; }
+  .btn-primary { font-family: inherit; font-size: 12px; font-weight: 600; background: var(--accent); color: #fff; border: none; border-radius: 7px; padding: 7px 14px; cursor: pointer; }
+
+  .topic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .history-block { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .history-summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--muted); list-style: none; }
+  .history-summary::-webkit-details-marker { display: none; }
+  .history-summary::before { content: "▸ "; }
+  .history-block[open] .history-summary::before { content: "▾ "; }
+  .history-block .topic-list { margin-top: 10px; }
+  .topic-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; display: flex; align-items: flex-start; gap: 10px; }
+  .topic-card[data-status="termine"] { opacity: .55; }
+  .topic-card { cursor: pointer; }
+  .status-wrap { position: relative; flex-shrink: 0; margin-top: 1px; }
+  .topic-status-btn { font-family: inherit; font-size: 10px; font-weight: 700; border: none; border-radius: 999px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
+  .topic-status-btn[data-status="a-evoquer"] { background: var(--accent-bg); color: var(--accent); }
+  .topic-status-btn[data-status="en-cours"] { background: var(--amber-bg); color: var(--amber); }
+  .topic-status-btn[data-status="termine"] { background: var(--green-bg); color: var(--green); }
+  .status-menu { display: none; position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.18); z-index: 5; min-width: 112px; overflow: hidden; }
+  .status-menu.open { display: block; }
+  .status-option { display: block; width: 100%; text-align: left; font-family: inherit; font-size: 11.5px; font-weight: 600; padding: 8px 10px; border: none; background: none; color: var(--text); cursor: pointer; }
+  .status-option:hover { background: var(--bg); }
+  .topic-body { flex: 1; min-width: 0; }
+  .topic-title { font-size: 13px; font-weight: 600; margin: 0 0 3px; }
+  .topic-link-icon { width: 13px; height: 13px; color: var(--accent); vertical-align: -2px; margin-left: 4px; }
+  .topic-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin: 0 0 6px; }
+  .topic-meta { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  .tag-b { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 6px; color: #fff; }
+  .tag-b.b1 { background: var(--b1); } .tag-b.b2 { background: var(--b2); } .tag-b.b3 { background: var(--b3); } .tag-b.b4 { background: var(--b4); }
+  .tag-link { font-size: 10px; font-weight: 600; border-radius: 5px; padding: 2px 6px; background: var(--accent-bg); color: var(--accent); }
+  .tag-crit { font-size: 10px; font-weight: 600; border-radius: 5px; padding: 2px 6px; }
+  .tag-crit.haute { background: var(--red-bg); color: var(--red); }
+  .tag-crit.moyenne { background: var(--amber-bg); color: var(--amber); }
+  .tag-crit.basse { background: var(--green-bg); color: var(--green); }
+
+  .page-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,13,20,0.55); display: none; align-items: center; justify-content: center; padding: 24px 16px; z-index: 20; overflow-y: auto; }
+  .modal-overlay-stacked { z-index: 30; }
+  .modal-box-wide { max-width: 520px; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 640px; max-height: calc(100vh - 48px); display: flex; flex-direction: column; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .modal-head-titles { min-width: 0; }
+  .modal-eyebrow { font-size: 10.5px; color: var(--accent); font-weight: 700; margin: 0 0 2px; }
+  .modal-title { font-size: 14px; font-weight: 700; margin: 0; word-break: break-word; }
+  .modal-close { border: none; background: var(--bg); color: var(--muted); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+  .modal-body { padding: 16px 18px; overflow-y: auto; }
+  .modal-foot { padding: 10px 18px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
+  .modal-foot-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .modal-foot-actions a.btn-primary { text-decoration: none; display: inline-block; }
+  .report-textarea { width: 100%; min-height: 320px; font-family: inherit; font-size: 12px; line-height: 1.6; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); resize: vertical; }
+
+  .tm-section { margin-bottom: 16px; }
+  .tm-section:last-child { margin-bottom: 0; }
+  .tm-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin: 0 0 8px; }
+  .tm-section-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+  .tm-section-head .tm-section-title { margin: 0; }
+  .tm-expand-btn { font-family: inherit; font-size: 10.5px; font-weight: 600; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 4px 8px; cursor: pointer; }
+  .tm-messages-wide { max-height: 60vh; overflow-y: auto; }
+  .tm-messages-preview { max-height: 96px; overflow-y: auto; }
+  .tm-desc { font-size: 12.5px; line-height: 1.5; margin: 0; }
+  .tm-actors { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tm-actor { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+  .tm-actor-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .tm-messages { display: flex; flex-direction: column; gap: 8px; }
+  .tm-message { background: var(--bg); border-radius: 8px; border-left: 4px solid var(--border); padding: 8px 10px; font-size: 12px; line-height: 1.4; }
+  .tm-message-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+  .tm-message b { font-weight: 700; }
+  .tm-message-text { margin: 0; }
+  .tm-time { font-size: 9.5px; color: var(--muted); opacity: .8; white-space: nowrap; flex-shrink: 0; }
+  .modal-status-group { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .modal-status-btn { font-family: inherit; font-size: 11.5px; font-weight: 600; padding: 7px 12px; border: none; background: var(--bg); color: var(--muted); cursor: pointer; border-right: 1px solid var(--border); }
+  .modal-status-btn:last-child { border-right: none; }
+  .modal-status-btn.active[data-status="a-evoquer"] { background: var(--accent-bg); color: var(--accent); }
+  .modal-status-btn.active[data-status="en-cours"] { background: var(--amber-bg); color: var(--amber); }
+  .modal-status-btn.active[data-status="termine"] { background: var(--green-bg); color: var(--green); }
+</style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+  </button>
+
+  <div class="page-wrap">
+    <a href="#" class="back-link" id="backLink">← Réunions</a>
+    <div class="page-header">
+      <div>
+        <p class="page-title" id="pageTitle">Réunion de synthèse</p>
+        <p class="page-meeting-meta" id="pageMeetingMeta"></p>
+      </div>
+      <div class="page-header-actions" id="pageHeaderActions">
+        <button class="btn-outline" onclick="openReportModal()">📄 Éditer le rapport</button>
+        <button class="btn-add" id="newTopicBtn" onclick="toggleAddPanel()">+ Nouveau sujet</button>
+        <button class="btn-outline" id="endMeetingBtn" hidden>Terminer la réunion</button>
+      </div>
+    </div>
+
+    <div id="meetingSummary" class="meeting-summary" hidden></div>
+
+    <div class="add-panel" id="addPanel">
+      <p class="add-panel-title">Nouveau sujet</p>
+      <div class="add-field">
+        <label>Titre</label>
+        <input type="text" id="addTitle" placeholder="Ex. Accès chantier temporaire" />
+      </div>
+      <div class="add-field">
+        <label>Description</label>
+        <textarea id="addDesc" placeholder="Décrire le problème, le contexte, ce qui est attendu"></textarea>
+      </div>
+      <div class="add-field">
+        <label>Bâtiment(s) concerné(s)</label>
+        <div class="add-buildings">
+          <button type="button" class="add-building-toggle" data-b="1" onclick="toggleBuilding(this)">Bât. 1</button>
+          <button type="button" class="add-building-toggle" data-b="2" onclick="toggleBuilding(this)">Bât. 2</button>
+          <button type="button" class="add-building-toggle" data-b="3" onclick="toggleBuilding(this)">Bât. 3</button>
+          <button type="button" class="add-building-toggle" data-b="4" onclick="toggleBuilding(this)">Bât. 4</button>
+        </div>
+        <p class="add-hint">Aucun bâtiment coché = sujet transverse au projet entier.</p>
+      </div>
+      <div class="add-field">
+        <label>Personnes liées</label>
+        <div class="add-actors-row">
+          <input type="text" id="addActorInput" placeholder="Nom / rôle, ex. BE Structure" />
+          <button type="button" class="btn-secondary" onclick="addActorChip()">+ Ajouter</button>
+        </div>
+        <div class="add-actors-list" id="addActorsList"></div>
+      </div>
+      <div class="add-field">
+        <label>Lié à un élément de la maquette ?</label>
+        <div class="add-link-toggle">
+          <button type="button" class="add-link-btn" id="linkOui" onclick="setLink(true)">Oui, sélectionner dans le viewer</button>
+          <button type="button" class="add-link-btn on" id="linkNon" onclick="setLink(false)">Non, sujet libre</button>
+        </div>
+        <div class="add-viewer" id="addViewer" hidden>
+          <img src="assets/viewer-exemple.png" alt="Maquette IFC, cour intérieure, élément sélectionné en vert, toolbar Recentrer/Nouvelle discussion/Créer une coupe" />
+        </div>
+        <p class="add-viewer-hint" id="addViewerHint" hidden>Cliquer un élément dans le viewer pour le lier au sujet.</p>
+      </div>
+      <div class="add-field">
+        <label>Criticité</label>
+        <select id="addCrit">
+          <option value="basse">Basse</option>
+          <option value="moyenne" selected>Moyenne</option>
+          <option value="haute">Haute</option>
+        </select>
+      </div>
+      <div class="add-actions">
+        <button class="btn-secondary" onclick="toggleAddPanel()">Annuler</button>
+        <button class="btn-primary" onclick="addTopic()">Ajouter</button>
+      </div>
+    </div>
+
+    <div class="topic-list" id="topicList">
+      <div class="topic-card" data-id="t1" data-buildings="1" data-crit="haute" data-status="a-evoquer" onclick="openTopicModal('t1')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="a-evoquer" onclick="toggleStatusMenu(this, event)">À évoquer</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Poteau P-114 / gaine CVC<svg class="topic-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Vue sur la maquette disponible"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></p>
+          <p class="topic-desc">Interférence entre le poteau et une gaine CVC, décalage à valider côté structure.</p>
+          <div class="topic-meta">
+            <span class="tag-b b1">Bât. 1</span>
+            <span class="tag-crit haute">Haute</span>
+          </div>
+        </div>
+      </div>
+      <div class="topic-card" data-id="t2" data-buildings="1" data-crit="moyenne" data-status="en-cours" onclick="openTopicModal('t2')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="en-cours" onclick="toggleStatusMenu(this, event)">En cours</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Trémie escalier ESC-02<svg class="topic-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Vue sur la maquette disponible"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></p>
+          <p class="topic-desc">Dimension de trémie à ajuster suite au retour du bureau d'études structure.</p>
+          <div class="topic-meta">
+            <span class="tag-b b1">Bât. 1</span>
+            <span class="tag-crit moyenne">Moyenne</span>
+          </div>
+        </div>
+      </div>
+      <div class="topic-card" data-id="t4" data-buildings="3" data-crit="haute" data-status="a-evoquer" onclick="openTopicModal('t4')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="a-evoquer" onclick="toggleStatusMenu(this, event)">À évoquer</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Réseau EU sous-sol<svg class="topic-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Vue sur la maquette disponible"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></p>
+          <p class="topic-desc">Collision entre le réseau eaux usées et un massif de fondation, tracé à revoir.</p>
+          <div class="topic-meta">
+            <span class="tag-b b3">Bât. 3</span>
+            <span class="tag-crit haute">Haute</span>
+          </div>
+        </div>
+      </div>
+      <div class="topic-card" data-id="t5" data-buildings="4" data-crit="moyenne" data-status="a-evoquer" onclick="openTopicModal('t5')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="a-evoquer" onclick="toggleStatusMenu(this, event)">À évoquer</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Accès livraison</p>
+          <p class="topic-desc">Largeur d'accès insuffisante pour les livraisons prévues en phase chantier.</p>
+          <div class="topic-meta">
+            <span class="tag-b b4">Bât. 4</span>
+            <span class="tag-crit moyenne">Moyenne</span>
+          </div>
+        </div>
+      </div>
+      <div class="topic-card" data-id="t6" data-buildings="1,2" data-crit="moyenne" data-status="en-cours" onclick="openTopicModal('t6')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="en-cours" onclick="toggleStatusMenu(this, event)">En cours</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Phasage livraison commune</p>
+          <p class="topic-desc">Séquencement des livraisons à coordonner entre les 2 bâtiments, accès partagé.</p>
+          <div class="topic-meta">
+            <span class="tag-b b1">Bât. 1</span>
+            <span class="tag-b b2">Bât. 2</span>
+            <span class="tag-crit moyenne">Moyenne</span>
+          </div>
+        </div>
+      </div>
+      <div class="topic-card" data-id="t7" data-buildings="3,4" data-crit="basse" data-status="a-evoquer" onclick="openTopicModal('t7')">
+        <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="a-evoquer" onclick="toggleStatusMenu(this, event)">À évoquer</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+        <div class="topic-body">
+          <p class="topic-title">Convention de nommage commune</p>
+          <p class="topic-desc">Harmoniser la nomenclature des locaux entre les 2 bâtiments avant livraison.</p>
+          <div class="topic-meta">
+            <span class="tag-b b3">Bât. 3</span>
+            <span class="tag-b b4">Bât. 4</span>
+            <span class="tag-crit basse">Basse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details class="history-block">
+      <summary class="history-summary">Historique <span id="historyCount">(1)</span></summary>
+      <div class="topic-list" id="historyList">
+        <div class="topic-card" data-id="t3" data-buildings="2" data-crit="basse" data-status="termine" onclick="openTopicModal('t3')">
+          <div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="termine" onclick="toggleStatusMenu(this, event)">Terminé</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, 'a-evoquer', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, 'en-cours', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, 'termine', event)">Terminé</button></div></div>
+          <div class="topic-body">
+            <p class="topic-title">Façade sud, baie B-07<svg class="topic-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Vue sur la maquette disponible"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></p>
+            <p class="topic-desc">Position de la baie validée après la dernière modification, aucune action restante.</p>
+            <div class="topic-meta">
+              <span class="tag-b b2">Bât. 2</span>
+              <span class="tag-crit basse">Basse</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="modal-overlay" id="topicModal" onclick="if (event.target === this) closeTopicModal()">
+      <div class="modal-box">
+        <div class="modal-head">
+          <div class="modal-head-titles">
+            <p class="modal-eyebrow" id="tmEyebrow"></p>
+            <p class="modal-title" id="tmTitle"></p>
+          </div>
+          <button class="modal-close" onclick="closeTopicModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="tm-section">
+            <p class="tm-section-title">Statut</p>
+            <div class="modal-status-group">
+              <button type="button" class="modal-status-btn" data-status="a-evoquer" onclick="chooseModalStatus('a-evoquer')">À évoquer</button>
+              <button type="button" class="modal-status-btn" data-status="en-cours" onclick="chooseModalStatus('en-cours')">En cours</button>
+              <button type="button" class="modal-status-btn" data-status="termine" onclick="chooseModalStatus('termine')">Terminé</button>
+            </div>
+          </div>
+          <div class="tm-section" id="tmViewerWrap" hidden>
+            <p class="tm-section-title">Vue maquette</p>
+            <div class="add-viewer"><img src="assets/viewer-exemple.png" alt="Maquette IFC, élément concerné sélectionné dans le viewer" /></div>
+          </div>
+          <div class="tm-section">
+            <p class="tm-section-title">Description</p>
+            <p class="tm-desc" id="tmDesc"></p>
+          </div>
+          <div class="tm-section">
+            <p class="tm-section-title">Acteurs concernés</p>
+            <div class="tm-actors" id="tmActors"></div>
+          </div>
+          <div class="tm-section">
+            <div class="tm-section-head">
+              <p class="tm-section-title">Fil de discussion</p>
+              <button type="button" class="tm-expand-btn" onclick="openDiscussionModal()">⤢ Agrandir</button>
+            </div>
+            <div class="tm-messages tm-messages-preview" id="tmMessages"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay modal-overlay-stacked" id="discussionModal" onclick="if (event.target === this) closeDiscussionModal()">
+      <div class="modal-box modal-box-wide">
+        <div class="modal-head">
+          <div class="modal-head-titles">
+            <p class="modal-eyebrow">Fil de discussion</p>
+            <p class="modal-title" id="dmTitle"></p>
+          </div>
+          <button class="modal-close" onclick="closeDiscussionModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="tm-messages tm-messages-wide" id="dmMessages"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="reportModal" onclick="if (event.target === this) closeReportModal()">
+      <div class="modal-box modal-box-wide">
+        <div class="modal-head">
+          <div class="modal-head-titles">
+            <p class="modal-eyebrow">Compte-rendu</p>
+            <p class="modal-title" id="reportModalTitle">Réunion de synthèse · 10/09/2026</p>
+          </div>
+          <button class="modal-close" onclick="closeReportModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="reportText" class="report-textarea" oninput="updateMailLink()"></textarea>
+        </div>
+        <div class="modal-foot modal-foot-actions">
+          <button type="button" class="btn-outline" id="sendAppBtn" onclick="sendReportInApp()">↗ Envoyer via l'app</button>
+          <a class="btn-primary" id="sendMailBtn" href="#">✉ Envoyer par mail</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="meetingConfigModal">
+      <div class="modal-box modal-box-wide">
+        <div class="modal-head">
+          <div class="modal-head-titles">
+            <p class="modal-eyebrow">Avant de commencer</p>
+            <p class="modal-title">Configurer la réunion</p>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="add-field">
+            <label>Acteurs présents à cette réunion</label>
+            <div class="filters" id="configActorFilters">
+              <button type="button" class="filter-chip" data-actor="BE Structure" onclick="toggleConfigActor(this)">BE Structure</button>
+              <button type="button" class="filter-chip" data-actor="Projeteur" onclick="toggleConfigActor(this)">Projeteur</button>
+              <button type="button" class="filter-chip" data-actor="BE VRD" onclick="toggleConfigActor(this)">BE VRD</button>
+              <button type="button" class="filter-chip" data-actor="Conducteur de travaux" onclick="toggleConfigActor(this)">Conducteur de travaux</button>
+              <button type="button" class="filter-chip" data-actor="BE Bât. 1" onclick="toggleConfigActor(this)">BE Bât. 1</button>
+              <button type="button" class="filter-chip" data-actor="BE Bât. 2" onclick="toggleConfigActor(this)">BE Bât. 2</button>
+              <button type="button" class="filter-chip" data-actor="BE Bât. 3" onclick="toggleConfigActor(this)">BE Bât. 3</button>
+              <button type="button" class="filter-chip" data-actor="BE Bât. 4" onclick="toggleConfigActor(this)">BE Bât. 4</button>
+            </div>
+            <p class="add-hint">Responsable synthèse toujours présent, inutile de le cocher.</p>
+          </div>
+          <div class="add-field">
+            <label>Bâtiment(s) concerné(s)</label>
+            <div class="add-buildings" id="configBuildingToggles">
+              <button type="button" class="add-building-toggle" data-b="1" onclick="toggleBuilding(this)">Bât. 1</button>
+              <button type="button" class="add-building-toggle" data-b="2" onclick="toggleBuilding(this)">Bât. 2</button>
+              <button type="button" class="add-building-toggle" data-b="3" onclick="toggleBuilding(this)">Bât. 3</button>
+              <button type="button" class="add-building-toggle" data-b="4" onclick="toggleBuilding(this)">Bât. 4</button>
+            </div>
+            <p class="add-hint">La liste des sujets sera limitée à ceux qui concernent un bâtiment ou un acteur coché ci-dessus (sujets transverses toujours inclus).</p>
+          </div>
+          <div class="add-actions">
+            <button class="btn-primary" onclick="startMeeting()">Lancer la réunion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var linkedToModel = false;
+
+    // currentBuildingFilter / currentActorFilter : 'tous' = pas de restriction
+    // (etat par defaut, et cas des reunions terminees ou la config n'existe
+    // pas). Une fois la config de reunion validee (startMeeting), ce sont
+    // des tableaux (multi-select) des batiments / acteurs coches.
+    var currentBuildingFilter = 'tous';
+    var currentCritFilter = 'toutes';
+    var currentActorFilter = 'tous';
+
+    function setFilter(f) {
+      currentBuildingFilter = f;
+      document.querySelectorAll('#filters .filter-chip').forEach(function (c) { c.classList.toggle('active', c.getAttribute('data-filter') === f); });
+      applyFilters();
+    }
+
+    function setCritFilter(c) {
+      currentCritFilter = c;
+      document.querySelectorAll('#critFilters .filter-chip').forEach(function (chip) { chip.classList.toggle('active', chip.getAttribute('data-crit-filter') === c); });
+      applyFilters();
+    }
+
+    // Un sujet matche la config de reunion (batiments/acteurs coches) si au
+    // moins un des deux criteres correspond (OR, pas besoin des deux) :
+    // - un de ses batiments recoupe les batiments coches, ou il est
+    //   transverse (aucun batiment renseigne = toujours inclus) ;
+    // - un de ses acteurs (hors "Responsable synthese", toujours ignore)
+    //   fait partie des acteurs coches.
+    function meetingFilterMatches(card) {
+      if (currentBuildingFilter === 'tous' && currentActorFilter === 'tous') { return true; }
+      var buildings = card.getAttribute('data-buildings').split(',').filter(function (b) { return b !== ''; });
+      var buildingMatch = !buildings.length || (currentBuildingFilter !== 'tous' && buildings.some(function (b) { return currentBuildingFilter.indexOf(b) !== -1; }));
+      var detail = TOPICS_DETAIL[card.getAttribute('data-id')];
+      var actorMatch = !!detail && currentActorFilter !== 'tous' && detail.actors.some(function (a) { return a !== 'Responsable synthèse' && currentActorFilter.indexOf(a) !== -1; });
+      return buildingMatch || actorMatch;
+    }
+
+    function applyFilters() {
+      document.querySelectorAll('.topic-card').forEach(function (card) {
+        // Sujet cree pendant la reunion en cours (addTopic) : toujours
+        // visible, meme s'il ne matche pas la config choisie au depart.
+        var meetingMatch = card.hasAttribute('data-session-added') || meetingFilterMatches(card);
+        var critMatch = currentCritFilter === 'toutes' || card.getAttribute('data-crit') === currentCritFilter;
+        card.style.display = (meetingMatch && critMatch) ? 'flex' : 'none';
+      });
+    }
+
+    function toggleConfigActor(btn) {
+      btn.classList.toggle('active');
+    }
+
+    function startMeeting() {
+      var selectedBuildings = Array.prototype.slice.call(document.querySelectorAll('#configBuildingToggles .add-building-toggle.on')).map(function (b) { return b.getAttribute('data-b'); });
+      var selectedActors = Array.prototype.slice.call(document.querySelectorAll('#configActorFilters .filter-chip.active')).map(function (c) { return c.getAttribute('data-actor'); });
+      currentBuildingFilter = selectedBuildings;
+      currentActorFilter = selectedActors;
+      document.getElementById('meetingConfigModal').classList.remove('open');
+      unlockBodyScrollIfNoneOpen();
+      applyFilters();
+      // Bouton affiché une fois la reunion configuree, fonctionnement pas
+      // encore implemente (demande explicite de Gilles, 11/09) : pas de
+      // onclick pour l'instant, juste rendre le bouton visible au bon moment.
+      document.getElementById('endMeetingBtn').hidden = false;
+    }
+
+    var STATUS_LABEL = { 'a-evoquer': 'À évoquer', 'en-cours': 'En cours', 'termine': 'Terminé' };
+    var currentModalId = null;
+
+    function closeAllStatusMenus() {
+      document.querySelectorAll('.status-menu.open').forEach(function (m) { m.classList.remove('open'); });
+    }
+
+    function toggleStatusMenu(btn, event) {
+      event.stopPropagation();
+      // Reunion terminee : statuts figes (tous clotures), rien a rouvrir.
+      if (typeof READ_ONLY !== 'undefined' && READ_ONLY) { return; }
+      var menu = btn.nextElementSibling;
+      var wasOpen = menu.classList.contains('open');
+      closeAllStatusMenus();
+      menu.classList.toggle('open', !wasOpen);
+    }
+
+    function setCardStatus(card, status) {
+      card.setAttribute('data-status', status);
+      var btn = card.querySelector('.topic-status-btn');
+      btn.setAttribute('data-status', status);
+      btn.textContent = STATUS_LABEL[status];
+
+      if (status === 'termine') {
+        document.getElementById('historyList').prepend(card);
+      } else if (card.closest('#historyList')) {
+        document.getElementById('topicList').prepend(card);
+      }
+      updateHistoryCount();
+    }
+
+    function updateHistoryCount() {
+      document.getElementById('historyCount').textContent = '(' + document.querySelectorAll('#historyList .topic-card').length + ')';
+    }
+
+    function chooseStatus(optionBtn, status, event) {
+      event.stopPropagation();
+      var card = optionBtn.closest('.topic-card');
+      setCardStatus(card, status);
+      closeAllStatusMenus();
+      if (currentModalId === card.getAttribute('data-id')) { syncModalStatus(status); }
+    }
+
+    function chooseModalStatus(status) {
+      if (typeof READ_ONLY !== 'undefined' && READ_ONLY) { return; }
+      if (!currentModalId) { return; }
+      var card = document.querySelector('.topic-card[data-id="' + currentModalId + '"]');
+      if (card) { setCardStatus(card, status); }
+      syncModalStatus(status);
+    }
+
+    function syncModalStatus(status) {
+      document.querySelectorAll('.modal-status-btn').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-status') === status);
+      });
+    }
+
+    document.addEventListener('click', closeAllStatusMenus);
+
+    var TOPICS_DETAIL = {
+      t1: {
+        linked: true,
+        actors: ['Responsable synthèse', 'BE Structure', 'Projeteur'],
+        messages: [
+          { a: 'Responsable synthèse', d: '08/09 09:14', t: "Peux-tu vérifier si le poteau peut être décalé de 15cm côté façade nord ?" },
+          { a: 'BE Structure', d: '08/09 11:30', t: "Je regarde la note de calcul, je reviens vers vous demain." },
+          { a: 'Projeteur', d: '08/09 14:05', t: "Côté plan, un décalage de 15cm reste dans l'emprise de la trame, pas de souci visuel." },
+          { a: 'BE Structure', d: '09/09 08:47', t: "Note de calcul revue : 15cm ok, mais il faut vérifier le recouvrement d'armatures en pied de poteau." },
+          { a: 'Responsable synthèse', d: '09/09 09:02', t: "Ok, on part sur 15cm. Le CVC valide bien le passage de la gaine avec ce décalage ?" },
+          { a: 'BE Structure', d: '09/09 09:15', t: "À confirmer avec le lot CVC, je les relance." },
+          { a: 'Projeteur', d: '09/09 16:20', t: "J'ai une contrainte supplémentaire : une trémie électrique passe à 20cm du poteau côté façade nord." },
+          { a: 'BE Structure', d: '09/09 16:45', t: "Ça reste compatible avec le décalage prévu, pas d'interférence supplémentaire." },
+          { a: 'Responsable synthèse', d: '10/09 08:30', t: "Parfait. On acte le décalage de 15cm, à intégrer dans la prochaine version de la maquette structure." },
+          { a: 'BE Structure', d: '10/09 08:52', t: "C'est fait, prochaine synchro prévue vendredi." }
+        ]
+      },
+      t2: {
+        linked: true,
+        actors: ['Responsable synthèse', 'BE Structure'],
+        messages: [
+          { a: 'BE Structure', d: '09/09 10:12', t: "Section réduite de 20cm nécessaire, cf note de calcul jointe." }
+        ]
+      },
+      t3: {
+        linked: true,
+        actors: ['Responsable synthèse', 'Projeteur'],
+        messages: [
+          { a: 'Projeteur', d: '07/09 15:00', t: "Position ajustée dans la dernière version, à valider." },
+          { a: 'Responsable synthèse', d: '08/09 09:30', t: "C'est bon pour moi, merci." }
+        ]
+      },
+      t4: {
+        linked: true,
+        actors: ['Responsable synthèse', 'BE VRD'],
+        messages: [
+          { a: 'BE VRD', d: '09/09 11:40', t: "Le tracé passe sous le massif, on propose un décalage de 40cm." }
+        ]
+      },
+      t5: {
+        linked: false,
+        actors: ['Responsable synthèse', 'Conducteur de travaux'],
+        messages: [
+          { a: 'Conducteur', d: '09/09 07:50', t: "La largeur prévue ne passe pas pour le camion toupie, à revoir avant le coulage." }
+        ]
+      },
+      t6: {
+        linked: false,
+        actors: ['Responsable synthèse', 'BE Bât. 1', 'BE Bât. 2'],
+        messages: [
+          { a: 'BE Bât. 2', d: '08/09 17:10', t: "On a besoin de l'accès commun libéré la même semaine que vous." }
+        ]
+      },
+      t7: {
+        linked: false,
+        actors: ['Responsable synthèse', 'BE Bât. 3', 'BE Bât. 4'],
+        messages: [
+          { a: 'BE Bât. 3', d: '07/09 13:25', t: "On propose une nomenclature commune avant la prochaine synthèse." }
+        ]
+      }
+    };
+
+    var ACTOR_COLORS = ['#4f7cb0', '#4f9e6a', '#9a5ca6', '#c07d2c', '#3f9696', '#8261b3'];
+    function actorColor(name) {
+      if (name === 'Responsable synthèse') { return '#b0454f'; }
+      var sum = 0;
+      for (var i = 0; i < name.length; i++) { sum += name.charCodeAt(i); }
+      return ACTOR_COLORS[sum % ACTOR_COLORS.length];
+    }
+
+    function openTopicModal(id) {
+      var card = document.querySelector('.topic-card[data-id="' + id + '"]');
+      var detail = TOPICS_DETAIL[id];
+      if (!card || !detail) { return; }
+
+      document.getElementById('tmTitle').textContent = card.querySelector('.topic-title').textContent.trim();
+      var buildings = card.getAttribute('data-buildings').split(',');
+      var eyebrow = (buildings.length > 1 ? 'Transverse · ' + buildings.map(function (b) { return 'Bât. ' + b; }).join(' + ') : 'Bât. ' + buildings[0]) + ' · Criticité ' + card.getAttribute('data-crit');
+      document.getElementById('tmEyebrow').textContent = eyebrow;
+      document.getElementById('tmDesc').textContent = card.querySelector('.topic-desc') ? card.querySelector('.topic-desc').textContent : '';
+      document.getElementById('tmViewerWrap').hidden = !detail.linked;
+
+      document.getElementById('tmActors').innerHTML = detail.actors.map(function (a) { return '<span class="tm-actor"><span class="tm-actor-dot" style="background:' + actorColor(a) + '"></span>' + a + '</span>'; }).join('');
+      document.getElementById('tmMessages').innerHTML = detail.messages.length
+        ? detail.messages.slice().reverse().map(function (m) { return '<div class="tm-message" style="border-left-color:' + actorColor(m.a) + '"><div class="tm-message-head"><b style="color:' + actorColor(m.a) + '">' + m.a + '</b><span class="tm-time">' + (m.d || '') + '</span></div><p class="tm-message-text">' + m.t + '</p></div>'; }).join('')
+        : '<div class="tm-message">Aucun échange pour le moment.</div>';
+
+      currentModalId = id;
+      syncModalStatus(card.getAttribute('data-status'));
+      document.getElementById('topicModal').classList.add('open');
+      lockBodyScroll();
+    }
+
+    function lockBodyScroll() {
+      document.body.style.overflow = 'hidden';
+    }
+
+    function unlockBodyScrollIfNoneOpen() {
+      if (!document.querySelector('.modal-overlay.open')) { document.body.style.overflow = ''; }
+    }
+
+    function closeTopicModal() {
+      document.getElementById('topicModal').classList.remove('open');
+      currentModalId = null;
+      unlockBodyScrollIfNoneOpen();
+    }
+
+    function openDiscussionModal() {
+      if (!currentModalId) { return; }
+      document.getElementById('dmTitle').textContent = document.getElementById('tmTitle').textContent;
+      document.getElementById('dmMessages').innerHTML = document.getElementById('tmMessages').innerHTML;
+      document.getElementById('discussionModal').classList.add('open');
+      lockBodyScroll();
+    }
+
+    function closeDiscussionModal() {
+      document.getElementById('discussionModal').classList.remove('open');
+      unlockBodyScrollIfNoneOpen();
+    }
+
+    function buildReportText() {
+      var lines = ['Compte-rendu de synthèse · ' + MEETING_DATE, ''];
+      var cards = Array.prototype.slice.call(document.querySelectorAll('#topicList .topic-card, #historyList .topic-card'));
+      cards.forEach(function (card) {
+        var title = card.querySelector('.topic-title').textContent.trim();
+        var descEl = card.querySelector('.topic-desc');
+        var buildings = card.getAttribute('data-buildings').split(',').map(function (b) { return 'Bât. ' + b; }).join(' + ');
+        var status = STATUS_LABEL[card.getAttribute('data-status')];
+        var crit = card.getAttribute('data-crit');
+        lines.push('[' + buildings + '] ' + title + ' (' + status + ', criticité ' + crit + ')');
+        if (descEl) { lines.push('  ' + descEl.textContent.trim()); }
+        lines.push('');
+      });
+      return lines.join('\n');
+    }
+
+    function openReportModal() {
+      document.getElementById('reportText').value = buildReportText();
+      updateMailLink();
+      document.getElementById('reportModal').classList.add('open');
+      lockBodyScroll();
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.remove('open');
+      unlockBodyScrollIfNoneOpen();
+    }
+
+    function updateMailLink() {
+      var text = document.getElementById('reportText').value;
+      var subject = encodeURIComponent('Compte-rendu de synthèse - ' + MEETING_DATE);
+      var body = encodeURIComponent(text);
+      document.getElementById('sendMailBtn').href = 'mailto:?subject=' + subject + '&body=' + body;
+    }
+
+    function sendReportInApp() {
+      var btn = document.getElementById('sendAppBtn');
+      var original = btn.textContent;
+      btn.textContent = 'Envoyé ✓';
+      btn.disabled = true;
+      setTimeout(function () { btn.textContent = original; btn.disabled = false; }, 1800);
+    }
+
+    function toggleAddPanel() {
+      document.getElementById('addPanel').classList.toggle('open');
+    }
+
+    function toggleBuilding(btn) {
+      btn.classList.toggle('on');
+    }
+
+    function setLink(oui) {
+      linkedToModel = oui;
+      document.getElementById('linkOui').classList.toggle('on', oui);
+      document.getElementById('linkNon').classList.toggle('on', !oui);
+      document.getElementById('addViewer').hidden = !oui;
+      document.getElementById('addViewerHint').hidden = !oui;
+    }
+
+    function escapeHtml(s) {
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    var newTopicCounter = 1;
+    var LINK_ICON = '<svg class="topic-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Vue sur la maquette disponible"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var pendingActors = [];
+
+    function renderActorChips() {
+      document.getElementById('addActorsList').innerHTML = pendingActors.map(function (name, i) {
+        return '<span class="add-actor-chip">' + escapeHtml(name) + '<button type="button" class="add-actor-remove" onclick="removeActorChip(' + i + ')">✕</button></span>';
+      }).join('');
+    }
+
+    function addActorChip() {
+      var input = document.getElementById('addActorInput');
+      var name = input.value.trim();
+      if (!name) { return; }
+      pendingActors.push(name);
+      input.value = '';
+      renderActorChips();
+    }
+
+    function removeActorChip(i) {
+      pendingActors.splice(i, 1);
+      renderActorChips();
+    }
+
+    function addTopic() {
+      var title = escapeHtml(document.getElementById('addTitle').value.trim() || 'Nouveau sujet');
+      var desc = escapeHtml(document.getElementById('addDesc').value.trim());
+      var crit = document.getElementById('addCrit').value;
+      var buildings = Array.prototype.slice.call(document.querySelectorAll('.add-building-toggle.on')).map(function (b) { return b.getAttribute('data-b'); });
+      var buildingsAttr = buildings.length ? buildings.join(',') : '1,2,3,4';
+      var id = 'new' + (newTopicCounter++);
+
+      var card = document.createElement('div');
+      card.className = 'topic-card';
+      card.setAttribute('data-id', id);
+      card.setAttribute('data-buildings', buildingsAttr);
+      card.setAttribute('data-crit', crit);
+      card.setAttribute('data-status', 'a-evoquer');
+      card.setAttribute('data-session-added', '1');
+      card.setAttribute('onclick', "openTopicModal('" + id + "')");
+
+      var tags = buildings.map(function (b) { return '<span class="tag-b b' + b + '">Bât. ' + b + '</span>'; }).join('');
+      if (!buildings.length) { tags = '<span class="tag-link">Transverse</span>'; }
+      tags += '<span class="tag-crit ' + crit + '">' + crit.charAt(0).toUpperCase() + crit.slice(1) + '</span>';
+
+      var descHtml = desc ? '<p class="topic-desc">' + desc + '</p>' : '';
+      var titleIcon = linkedToModel ? LINK_ICON : '';
+      card.innerHTML = '<div class="status-wrap" onclick="event.stopPropagation()"><button type="button" class="topic-status-btn" data-status="a-evoquer" onclick="toggleStatusMenu(this, event)">À évoquer</button><div class="status-menu"><button type="button" class="status-option" onclick="chooseStatus(this, \'a-evoquer\', event)">À évoquer</button><button type="button" class="status-option" onclick="chooseStatus(this, \'en-cours\', event)">En cours</button><button type="button" class="status-option" onclick="chooseStatus(this, \'termine\', event)">Terminé</button></div></div><div class="topic-body"><p class="topic-title">' + title + titleIcon + '</p>' + descHtml + '<div class="topic-meta">' + tags + '</div></div>';
+      document.getElementById('topicList').prepend(card);
+
+      TOPICS_DETAIL[id] = {
+        linked: linkedToModel,
+        actors: ['Vous (Responsable synthèse)'].concat(pendingActors),
+        messages: []
+      };
+
+      toggleAddPanel();
+      document.getElementById('addTitle').value = '';
+      document.getElementById('addDesc').value = '';
+      document.querySelectorAll('.add-building-toggle.on').forEach(function (b) { b.classList.remove('on'); });
+      setLink(false);
+      pendingActors = [];
+      renderActorChips();
+      applyFilters();
+    }
+
+    // Parametrage par reunion (11/09) : meme contenu (sujets) pour toutes
+    // les reunions pour l'instant, seul le statut passe en query string
+    // depuis la liste (index.html) change la presentation. "a-venir" =
+    // page telle quelle aujourd'hui (interactive). "terminee" = sujets
+    // tous clotures (rien invente, cloture reelle appliquee via
+    // setCardStatus), edition desactivee, resume ajoute en haut de page.
+    document.getElementById('backLink').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.parent && window.parent.backToSyntheseList) { window.parent.backToSyntheseList(); }
+    });
+
+    var urlParams = new URLSearchParams(window.location.search);
+    var MEETING_STATUT = urlParams.get('statut') === 'terminee' ? 'terminee' : 'a-venir';
+    var MEETING_DATE = urlParams.get('date') || '10/09/2026';
+    var READ_ONLY = MEETING_STATUT === 'terminee';
+
+    document.getElementById('pageMeetingMeta').innerHTML =
+      MEETING_DATE + '<span class="meeting-badge ' + MEETING_STATUT + '">' +
+      (READ_ONLY ? 'Terminée' : 'À venir') + '</span>';
+    document.getElementById('reportModalTitle').textContent = 'Réunion de synthèse · ' + MEETING_DATE;
+
+    if (READ_ONLY) {
+      document.getElementById('newTopicBtn').hidden = true;
+
+      var allCards = Array.prototype.slice.call(document.querySelectorAll('#topicList .topic-card, #historyList .topic-card'));
+      allCards.forEach(function (card) { setCardStatus(card, 'termine'); });
+      // Tous les sujets clotures finissent dans l'Historique (comportement
+      // normal de setCardStatus) : ouvert par defaut ici, sinon la page
+      // semblerait vide au premier coup d'oeil pour une reunion terminee.
+      document.querySelector('.history-block').open = true;
+      Array.prototype.slice.call(document.querySelectorAll('.topic-status-btn')).forEach(function (btn) {
+        btn.disabled = true;
+      });
+
+      var reportText = buildReportText();
+      var traites = allCards.length;
+      var summaryEl = document.getElementById('meetingSummary');
+      summaryEl.hidden = false;
+      summaryEl.innerHTML =
+        '<div class="meeting-summary-head">' +
+          '<p class="meeting-summary-title">Résumé de la réunion</p>' +
+          '<span class="meeting-summary-sent">Compte-rendu envoyé le ' + MEETING_DATE + '</span>' +
+        '</div>' +
+        '<div class="meeting-summary-stats">' +
+          '<span class="meeting-summary-stat"><b>' + traites + '</b>sujets clôturés</span>' +
+        '</div>' +
+        '<div class="meeting-summary-report">' + escapeHtml(reportText) + '</div>';
+    } else {
+      // Reunion a venir : ecran de config (acteurs/batiments presents)
+      // affiche au premier plan avant la liste, a chaque ouverture (pas de
+      // persistance, cf openSyntheseMeeting dans src/main.js qui recharge
+      // l'iframe a chaque fois). Une fois validee (startMeeting), filtre la
+      // liste des sujets en consequence.
+      document.getElementById('meetingConfigModal').classList.add('open');
+      lockBodyScroll();
+    }
+  </script>
+</body>
+</html>

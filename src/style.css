@@ -4,7 +4,7 @@
   --border: #30363d;
   --text: #c9d1d9;
   --muted: #8b949e;
-  --accent: #58a6ff;
+  --accent: #787152;
 }
 
 html, body {
@@ -37,6 +37,9 @@ html, body {
 }
 
 #navbarBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
   font-size: 14px;
   background: none;
@@ -46,7 +49,56 @@ html, body {
   padding: 0;
   font-family: inherit;
 }
-#navbarBrand:hover { color: var(--accent); }
+#navbarBrandIcon { height: 34px; width: auto; }
+#navbarBrandText { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+#navbarBrandName { font-size: 15px; font-weight: 700; color: var(--accent); }
+#navbarBrandSubtitle { font-size: 9px; font-weight: 400; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+#navbarBrand:hover #navbarBrandName { opacity: 0.8; }
+
+/* Selecteur de profil (11/09) : simule 4 profils fictifs (BIM Manager,
+   Responsable Synthese, Projeteur, Externe sans compte) pour demontrer que
+   l'appli s'adapte au metier/a l'entreprise, plutot qu'un select natif
+   custom-stylise a la main (pas prioritaire pour ce POC). */
+#personaSelect {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+/* Bouton "Activer les profils" (12/09) : remplace le selecteur direct dans
+   la navbar, herite du meme positionnement (apres #projectSelect qui porte
+   margin-left: auto). Le vrai #personaSelect vit desormais dans
+   #view-profils-intro. */
+#activateProfilesBtn {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+#activateProfilesBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+#personaBanner {
+  flex-shrink: 0;
+  padding: 7px 18px;
+  background: var(--accent-bg, rgba(120, 113, 82, 0.12));
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
+#personaBanner[hidden] { display: none; }
 
 #navbarLinks { display: flex; gap: 4px; }
 
@@ -108,6 +160,51 @@ html, body {
 /* Ancrage pour #infoPanelToggle (position absolute), place directement ici
    plutot que dans #viewerWrap qui est deplace dans le DOM ailleurs. */
 #view-viewer { position: relative; }
+
+/* Vue Todo (persona Projeteur) : liste des instructions creees par le
+   Bureau d'etudes (cf createInstructionBtn), meme detail partage que
+   Discussions (discussionsDetailPane), cf openThreadDetail(thread,
+   "projeteur") dans main.js. */
+#view-projeteur { flex-direction: column; }
+#projeteurListPane { flex: 1; padding: 24px; overflow-y: auto; }
+#projeteurListPane h2 { margin: 0 0 16px; font-size: 16px; }
+
+/* Reunion de synthese (11/09) : liste des reunions avant d'entrer dans le
+   mockup embarque, plutot qu'un acces direct au contenu unique d'avant.
+   Meme contenu (reunion-synthese.html) pour toutes les reunions pour
+   l'instant, seul le statut (a-venir/terminee, passe en query string a
+   l'iframe) change la presentation a l'interieur du mockup. */
+#view-synthese { flex-direction: column; }
+
+#syntheseListPane { flex: 1; overflow-y: auto; padding: 28px 24px; max-width: 640px; margin: 0 auto; width: 100%; }
+#syntheseListPane h2 { margin: 0 0 16px; font-size: 18px; }
+#syntheseMeetingsList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.meeting-card {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  font-family: inherit;
+}
+.meeting-card:hover { border-color: var(--accent); }
+.meeting-card-label { font-size: 13.5px; font-weight: 600; }
+.meeting-card-date { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.meeting-status-badge { flex-shrink: 0; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.meeting-status-badge.a-venir { background: rgba(120, 113, 82, 0.18); color: var(--accent); }
+.meeting-status-badge.terminee { background: rgba(139, 148, 158, 0.15); color: var(--muted); }
+
+#syntheseDetailPane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#syntheseDetailPane[hidden] { display: none; }
+#syntheseFrame { flex: 1; width: 100%; height: 100%; border: none; display: block; }
 
 #viewerWrap {
   position: relative;
@@ -173,6 +270,23 @@ html, body {
 }
 #viewerToolbar button:hover, #coupeToolbar button:hover { border-color: var(--accent); }
 #viewerToolbar button.active, #coupeToolbar button.active { border-color: var(--accent); color: var(--accent); }
+
+/* Selecteur de projet/maquette (11/09, test de charge grosse maquette) :
+   dans la navbar (comme le selecteur de profil), Viewer uniquement pour
+   l'instant. Collision/Discussions masques quand un projet non-demo est
+   charge (cf applyProjectNavGating dans main.js), home commune a tous les
+   projets (simple bouton marque, jamais reassignee). */
+#projectSelect {
+  margin-left: auto;
+  font-family: inherit;
+  padding: 5px 8px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
 
 .side-panel {
   flex: 0 0 300px;
@@ -278,10 +392,10 @@ html, body {
 #collisionInfoPanelBackdrop { display: none; }
 
 /* Meme principe pour la page Collision : le panneau Maquettes/Collisions
-   masque par defaut sur mobile, ouvert en overlay. Le bouton "← Interactions"
-   n'a plus besoin d'un clone flottant (deplace au-dessus de l'encart de la
-   visionneuse, deja visible a toutes les tailles d'ecran, cf #collisionBackBtn
-   plus bas) : seul le bouton "Infos" reste flottant sur la maquette. */
+   masque par defaut sur mobile, ouvert en overlay. "← Interactions" est
+   deja flottant sur la visionneuse a toutes les tailles d'ecran (cf
+   #collisionBackBtn plus bas), seul "Infos" a besoin de ce mode mobile
+   dedie. */
 @media (max-width: 768px) {
   #collisionInfoPanelToggle {
     display: block;
@@ -333,6 +447,19 @@ html, body {
 #section-niveaux:not([open]),
 #section-maquettes:not([open]),
 #section-fiche:not([open]) {
+  flex: 0 0 auto;
+}
+
+/* Meme mecanisme sur le panneau Collision : hauteur de la liste des
+   collisions reduite legerement au profit d'"Info selection", pour ne pas
+   avoir a scroller dans les 4 parametres IFC d'un element selectionne. */
+#section-collision-maquettes { flex: 0.7; }
+#section-collision-liste { flex: 1; }
+#section-collision-fiche { flex: 1.2; border-bottom: none; }
+
+#section-collision-maquettes:not([open]),
+#section-collision-liste:not([open]),
+#section-collision-fiche:not([open]) {
   flex: 0 0 auto;
 }
 
@@ -527,7 +654,7 @@ html, body {
   width: 100%;
   padding: 9px;
   background: var(--accent);
-  color: #0d1117;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -560,13 +687,99 @@ html, body {
   width: 100%;
   padding: 9px;
   background: var(--accent);
-  color: #0d1117;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Bouton "+" ouvrant la modale proprietes IFC, colle au titre "Info
+   selection" (.info-section-title deja en flex/space-between, le bouton se
+   place naturellement a droite du texte). */
+.fiche-more-btn {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.fiche-more-btn:hover { border-color: var(--accent); }
+
+#propsModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 52;
+  padding: 24px 16px;
+}
+#propsModalOverlay[hidden] { display: none; }
+
+#propsModal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+#propsModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#propsModalHeadTitles { min-width: 0; }
+#propsModalEyebrow { margin: 0 0 2px; font-size: 10.5px; font-weight: 700; color: var(--accent); }
+#propsModalTitle { margin: 0; font-size: 14px; font-weight: 700; word-break: break-word; }
+#propsModalClose {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+#propsModalBody { padding: 8px 12px 16px; overflow-y: auto; }
+#propsModalFoot {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.pset-group { border-bottom: 1px solid var(--border); }
+.pset-group:last-child { border-bottom: none; }
+.pset-summary { list-style: none; cursor: pointer; padding: 12px 6px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text); }
+.pset-summary::-webkit-details-marker { display: none; }
+.pset-summary::before { content: "▸"; color: var(--accent); margin-right: 8px; font-weight: 400; }
+.pset-group[open] > .pset-summary::before { content: "▾"; }
+.pset-count { font-weight: 400; color: var(--muted); font-size: 11px; }
+.pset-table { padding: 0 6px 12px 24px; }
+.pset-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding: 5px 0; border-top: 1px dashed var(--border); color: var(--text); }
+.pset-row:first-child { border-top: none; }
+.pset-row span:first-child { color: var(--muted); }
+.pset-row span:last-child { text-align: right; font-weight: 600; }
 
 #newDiscussionModalOverlay {
   position: fixed;
@@ -644,7 +857,7 @@ html, body {
   width: 100%;
   padding: 9px;
   background: var(--accent);
-  color: #0d1117;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -704,6 +917,24 @@ html, body {
 }
 #collisionViewerSlot #viewerWrap { position: absolute; inset: 0; }
 
+/* Integre dans la visionneuse (11/09) plutot qu'en bandeau dedie au-dessus :
+   flottant en haut a gauche, meme langage visuel que les boutons de
+   #viewerToolbar/#coupeToolbar. */
+#collisionBackBtn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+  padding: 7px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+#collisionBackBtn:hover { border-color: var(--accent); }
+
 #collisionDiscussion {
   /* Hauteur fixe (200px), collee en bas de page (Collision et Discussions) :
      pas de redimensionnement a la main (retire, source de bugs). Si plus de
@@ -747,6 +978,38 @@ html, body {
 .discussion-auteur { font-weight: 700; color: var(--text); }
 .discussion-texte { color: var(--text); margin-top: 2px; }
 
+/* Instruction BE -> Projeteur (11/09) : bouton visible uniquement pour le
+   profil Bureau d'etudes, badge visible pour tout le monde des qu'un fil a
+   ete pris en charge (visibilite demandee pour le Responsable Synthese). */
+#threadAssignedBadge {
+  display: inline-block;
+  margin: 4px 0 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-bg, rgba(120, 113, 82, 0.15));
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+#threadAssignedBadge[hidden] { display: none; }
+
+#createInstructionBtn {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  background: var(--accent-bg, rgba(120, 113, 82, 0.15));
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+#createInstructionBtn:hover { background: var(--accent); color: #fff; }
+#createInstructionBtn[hidden] { display: none; }
+
 #discussionReplyForm {
   display: flex;
   gap: 8px;
@@ -776,7 +1039,7 @@ html, body {
 #discussionReplyForm button {
   padding: 7px 12px;
   background: var(--accent);
-  color: #0d1117;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 12.5px;
@@ -784,8 +1047,6 @@ html, body {
   cursor: pointer;
   flex-shrink: 0;
 }
-
-#collisionBackBtn { align-self: flex-start; margin: 12px 14px 0; }
 
 .collision-item-row {
   display: flex;
@@ -890,8 +1151,17 @@ html, body {
   border-radius: 20px;
   flex-shrink: 0;
 }
-.thread-type-badge.collision { color: var(--accent); background: rgba(88, 166, 255, 0.15); }
+.thread-type-badge.collision { color: var(--accent); background: rgba(120, 113, 82, 0.15); }
 .thread-type-badge.discussion { color: #a371f7; background: rgba(163, 113, 247, 0.15); }
+
+/* Meme info que #threadAssignedBadge (detail d'un fil), mais dans la liste :
+   le Responsable Synthese doit voir en un coup d'oeil qu'un fil est deja
+   pris en charge par le BE, sans avoir a l'ouvrir (11/09). */
+.thread-assigned-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+}
 
 #discussionsDetailPane {
   flex: 1;
@@ -913,13 +1183,24 @@ html, body {
   flex-direction: column;
   padding: 0 24px 24px;
 }
-/* Inutile sur desktop : l'onglet "Discussions" de la navbar, toujours
-   visible, ramene deja a la liste (cf reset dans le handler de clic navbar).
-   Garde uniquement sur mobile, ou la navbar est derriere le hamburger. */
-#discussionsBackBtn { display: none; align-self: flex-start; margin: 12px 0 0; }
-@media (max-width: 768px) {
-  #discussionsBackBtn { display: inline-block; }
+/* Integre dans la visionneuse (11/09, meme traitement que #collisionBackBtn
+   en Collision) plutot qu'en bandeau dedie. A droite (pas a gauche) pour ne
+   jamais chevaucher #threadVisualToggle (Avant/Après), surtout sur mobile
+   ou les 2 boutons sont proches en largeur reduite. */
+#discussionsBackBtn {
+  position: absolute;
+  top: 15px;
+  left: 10px;
+  z-index: 5;
+  padding: 7px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
 }
+#discussionsBackBtn:hover { border-color: var(--accent); }
 
 #threadVisualWrap {
   flex: 1;
@@ -959,7 +1240,7 @@ html, body {
 #threadVisualToggle {
   position: absolute;
   top: 15px;
-  left: 10px;
+  right: 10px;
   z-index: 5;
   display: flex;
   gap: 6px;
@@ -1007,6 +1288,7 @@ html, body {
   padding: 40px;
   max-width: 640px;
 }
+#landingHeroLogo { display: block; width: 220px; max-width: 60%; height: auto; margin: 0 0 20px; }
 #landingHeroText h1 { margin: 0 0 12px; font-size: 26px; letter-spacing: 0.02em; color: #fff; }
 #landingHeroText p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.85); }
 
@@ -1085,9 +1367,31 @@ html, body {
   font-weight: 700;
   cursor: pointer;
   background: var(--accent);
-  color: #0d1117;
+  color: #fff;
   border: none;
 }
+
+/* Ecran de presentation persona (11/09), cf index.html : meme langage
+   visuel que #view-landing (landing-part-*), contenu construit en JS. */
+#view-persona-intro { flex-direction: column; overflow-y: auto; }
+#personaIntroWrap { padding: 40px; max-width: 900px; margin: 0 auto; width: 100%; }
+#personaIntroTitle { margin: 0 0 8px; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
+#personaIntroWho { margin: 0 0 32px; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+
+/* Ecran "Activer les profils" (12/09), cf index.html : meme langage visuel
+   que #view-landing/#view-persona-intro (landing-part-*). */
+#view-profils-intro { flex-direction: column; overflow-y: auto; }
+#profilsIntroWrap { padding: 40px; max-width: 640px; margin: 0 auto; width: 100%; }
+#profilsIntroWrap h2 { margin: 0 0 20px; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
+.profils-disclaimer {
+  margin: 0 0 32px;
+  padding: 14px 16px;
+  background: rgba(240, 136, 62, 0.1);
+  border-left: 3px solid #f0883e;
+  border-radius: 4px;
+}
+.profils-disclaimer p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text); }
+#personaIntroContinueBtn { margin: 32px auto 0; }
 
 #presentationSidebar {
   flex: 0 0 260px;
@@ -1116,7 +1420,7 @@ html, body {
   cursor: pointer;
 }
 .pres-section-item:hover { color: var(--text); background: var(--bg); }
-.pres-section-item.active { color: var(--accent); background: var(--accent-bg, rgba(88, 166, 255, 0.12)); font-weight: 700; }
+.pres-section-item.active { color: var(--accent); background: var(--accent-bg, rgba(120, 113, 82, 0.12)); font-weight: 700; }
 
 #presentationContent {
   flex: 1;
@@ -1180,7 +1484,7 @@ html, body {
     border-radius: 8px;
     border: none;
     background: var(--accent);
-    color: #0d1117;
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -1292,7 +1596,7 @@ html, body {
 .flip-card.peek .flip-card-inner { animation: flip-peek 2.2s ease; }
 
 .constat-highlight {
-  background: rgba(88, 166, 255, 0.1);
+  background: rgba(120, 113, 82, 0.1);
   border-radius: 10px;
   padding: 16px 20px;
   font-size: 13.5px;

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="https://gillescobigo.com/images/logo-gc-white.png">
+<script>
+  (function () {
+    var fromUrl = new URLSearchParams(window.location.search).get('theme');
+    var stored = localStorage.getItem('vault-theme');
+    var theme = fromUrl || stored;
+    if (theme) { document.documentElement.setAttribute('data-theme', theme); }
+  })();
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var isDark = current ? current === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('vault-theme', next);
+  }
+</script>
+<title>Exploration BIM chantier - Page personnelle du jour (lien magique BCF)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --border: #e2e5ea; --text: #1c2333; --muted: #6b7280;
+    --accent: #4f8cff; --accent-bg: rgba(79,140,255,0.12); --purple: #8957e5; --purple-bg: rgba(137,87,229,0.12);
+    --green: #2ea043; --green-bg: rgba(46,160,67,0.12);
+    --orange: #d4820a; --orange-bg: rgba(212,130,10,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0f1420; --panel: #171d2b; --border: #2a3345; --text: #e6e9f0; --muted: #8b94a8; }
+  }
+  :root[data-theme="dark"] { --bg: #0f1420; --panel: #171d2b; --border: #2a3345; --text: #e6e9f0; --muted: #8b94a8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  h1, h2, h3 { font-family: "Poppins", "Inter", sans-serif; }
+  .theme-toggle { position: fixed; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  .topbar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; font-size: 13.5px; font-weight: 600; }
+  .topbar span { font-weight: 400; color: var(--muted); }
+
+  .page-wrap { max-width: 620px; margin: 0 auto; padding: 28px 20px 60px; }
+  .page-header { margin-bottom: 20px; }
+  .page-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--purple); margin: 0 0 6px; }
+  .page-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .action-row { display: flex; gap: 10px; margin: 20px 0 26px; flex-wrap: wrap; }
+  .btn { font-family: inherit; font-size: 12.5px; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: default; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--panel); color: var(--text); border-color: var(--border); }
+
+  .item-list { display: flex; flex-direction: column; gap: 10px; }
+  .item-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .item-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .item-body { flex: 1; min-width: 0; }
+  .item-target { font-size: 10.5px; color: var(--muted); margin: 0 0 3px; }
+  .item-target strong { color: var(--purple); }
+  .item-title { font-size: 13.5px; font-weight: 700; margin: 0 0 4px; }
+  .item-excerpt { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 10px; }
+
+  .item-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .item-open-link { font-size: 11px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .item-open-link:hover { text-decoration: underline; }
+  .status-group { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .status-btn { font-family: inherit; font-size: 11px; font-weight: 600; padding: 6px 10px; border: none; background: var(--bg); color: var(--muted); cursor: pointer; border-right: 1px solid var(--border); }
+  .status-btn:last-child { border-right: none; }
+  .status-btn.active-todo { background: var(--orange-bg); color: var(--orange); }
+  .status-btn.active-cours { background: var(--accent-bg); color: var(--accent); }
+  .status-btn.active-fait { background: var(--green-bg); color: var(--green); }
+
+  .page-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12.5px; }
+  .page-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+  </button>
+
+  <nav class="topbar">Vos actions du jour</nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <p class="page-eyebrow">Lien personnel · valable 24h</p>
+      <h1 class="page-title">Bonjour Gilles</h1>
+      <p class="page-sub">3 discussions vous concernent aujourd'hui. Aucune connexion nécessaire depuis ce lien.</p>
+    </div>
+
+    <div class="action-row">
+      <span class="btn btn-primary">⬇ Télécharger le BCF pour Revit</span>
+      <span class="btn btn-secondary">✉ Recevoir un mail à jour</span>
+      <span class="btn btn-secondary">↗ Ouvrir l'application complète</span>
+    </div>
+
+    <div class="item-list">
+      <div class="item-card">
+        <div class="item-num">1</div>
+        <div class="item-body">
+          <p class="item-target">Poteau <strong>P-114</strong> · Niveau R+1</p>
+          <p class="item-title">Interférence avec une gaine CVC, à confirmer sur plan</p>
+          <p class="item-excerpt">Responsable synthèse : "Peux-tu vérifier si le poteau peut être décalé de 15cm côté façade nord ?"</p>
+          <div class="item-actions">
+            <div class="status-group">
+              <button class="status-btn active-todo">À faire</button>
+              <button class="status-btn">En cours</button>
+              <button class="status-btn">Terminé</button>
+            </div>
+            <a class="item-open-link" href="#">↗ Ouvrir dans l'app</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="item-card">
+        <div class="item-num">2</div>
+        <div class="item-body">
+          <p class="item-target">Trémie escalier <strong>ESC-02</strong> · Niveau R+0</p>
+          <p class="item-title">Dimension de trémie à ajuster suite retour bureau d'études</p>
+          <p class="item-excerpt">BE Structure : "Section réduite de 20cm nécessaire, cf note de calcul jointe."</p>
+          <div class="item-actions">
+            <div class="status-group">
+              <button class="status-btn">À faire</button>
+              <button class="status-btn active-cours">En cours</button>
+              <button class="status-btn">Terminé</button>
+            </div>
+            <a class="item-open-link" href="#">↗ Ouvrir dans l'app</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="item-card">
+        <div class="item-num">3</div>
+        <div class="item-body">
+          <p class="item-target">Façade sud · Baie <strong>B-07</strong></p>
+          <p class="item-title">Position validée après votre dernière modification</p>
+          <p class="item-excerpt">Responsable synthèse : "C'est bon pour moi, merci."</p>
+          <div class="item-actions">
+            <div class="status-group">
+              <button class="status-btn">À faire</button>
+              <button class="status-btn">En cours</button>
+              <button class="status-btn active-fait">Terminé</button>
+            </div>
+            <a class="item-open-link" href="#">↗ Ouvrir dans l'app</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var statusClasses = ["active-todo", "active-cours", "active-fait"];
+    Array.prototype.slice.call(document.querySelectorAll(".status-group")).forEach(function (group) {
+      var buttons = Array.prototype.slice.call(group.querySelectorAll(".status-btn"));
+      buttons.forEach(function (btn, i) {
+        btn.addEventListener("click", function () {
+          buttons.forEach(function (b) { statusClasses.forEach(function (c) { b.classList.remove(c); }); });
+          btn.classList.add(statusClasses[i]);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

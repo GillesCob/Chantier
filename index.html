@@ -17,22 +17,44 @@
   </head>
   <body>
     <header id="navbar">
-      <button type="button" id="navbarBrand">IES CONSULTING</button>
+      <button type="button" id="navbarBrand">
+        <img src="/images/ies-logo.png" alt="" id="navbarBrandIcon">
+        <span id="navbarBrandText">
+          <span id="navbarBrandName">IES</span>
+          <span id="navbarBrandSubtitle">Innovative Engineering Solutions</span>
+        </span>
+      </button>
       <button type="button" id="navbarToggle" aria-label="Ouvrir le menu">☰</button>
       <nav id="navbarLinks">
-        <button type="button" class="nav-link" data-view="presentation">Présentation</button>
-        <button type="button" class="nav-link" data-view="viewer">Viewer</button>
-        <button type="button" class="nav-link" data-view="collision">Collision</button>
-        <button type="button" class="nav-link" data-view="discussions">Discussions</button>
+        <button type="button" class="nav-link" data-view="presentation" data-persona="presentation-globale">Présentation</button>
+        <button type="button" class="nav-link" data-view="viewer" data-persona="presentation-globale bim-manager synthese externe projeteur be">Viewer</button>
+        <button type="button" class="nav-link" data-view="collision" data-persona="presentation-globale bim-manager synthese be">Collision</button>
+        <button type="button" class="nav-link" data-view="discussions" data-persona="presentation-globale bim-manager synthese be">Discussions</button>
+        <button type="button" class="nav-link" data-view="synthese" data-persona="synthese">Réunion de synthèse</button>
+        <button type="button" class="nav-link" data-view="projeteur" data-persona="projeteur">Todo</button>
       </nav>
+      <select id="projectSelect" aria-label="Changer de projet/maquette" title="Changer de projet/maquette">
+        <option value="demo-xkt">Démo POC (IFC 29 Mo)</option>
+        <option value="hospital-xkt">WestRiverSide Hospital (IFC 147 Mo)</option>
+      </select>
+      <button type="button" id="activateProfilesBtn">Activer les profils</button>
+      <select id="personaSelect" aria-label="Changer de profil" hidden>
+        <option value="presentation-globale">Présentation outil global</option>
+        <option value="bim-manager">BIM Manager</option>
+        <option value="synthese">Responsable Synthèse</option>
+        <option value="be">Bureau d'études</option>
+        <option value="projeteur">Projeteur</option>
+        <option value="externe">Externe sans compte</option>
+      </select>
     </header>
+    <div id="personaBanner" hidden>Vue externe, sans connexion : consultation seule, aucune action d'édition.</div>
 
     <div id="appBody">
       <div id="view-landing" class="view">
         <div id="landingHero">
           <div id="landingHeroOverlay"></div>
           <div id="landingHeroText">
-            <h1>IES CONSULTING</h1>
+            <img src="/images/ies-logo.png" alt="IES Consulting" id="landingHeroLogo">
             <p>Cette présentation est le Proof of Concept d'une application pensée pour faciliter le travail du BIM Manager sur un chantier, tout en démocratisant l'usage de la maquette auprès de tous les corps de métier présents sur un projet de construction ou de rénovation.</p>
           </div>
         </div>
@@ -150,7 +172,7 @@
           </details>
 
           <details class="info-section" id="section-fiche" open>
-            <summary class="info-section-title"><span>Info sélection</span></summary>
+            <summary class="info-section-title"><span>Info sélection</span><button type="button" class="fiche-more-btn" id="ficheMoreBtn" title="Voir toutes les propriétés (Pset)">+</button></summary>
             <p class="info-empty" id="fichePlaceholder">Cliquez sur un élément de la maquette, ou sur le nom d'un niveau.</p>
             <dl class="fiche-content" id="ficheContent" hidden></dl>
             <div id="ficheDocs"></div>
@@ -179,12 +201,14 @@
 
         <div id="collisionDetail" hidden>
           <div id="collisionLeft">
-            <button type="button" id="collisionBackBtn" class="reset-btn">← Interactions</button>
             <div id="collisionViewerSlot">
+              <button type="button" id="collisionBackBtn">← Interactions</button>
               <button type="button" id="collisionInfoPanelToggle" aria-label="Afficher les maquettes et collisions">☰ Infos</button>
             </div>
             <div id="collisionDiscussion" hidden>
               <h3 id="collisionDiscussionTitle" title="Cliquer pour voir le titre complet">Discussion</h3>
+              <span id="threadAssignedBadge" hidden></span>
+              <button type="button" id="createInstructionBtn" hidden>→ Créer une instruction pour le projeteur</button>
               <ul id="discussionMessages"></ul>
               <form id="discussionReplyForm" hidden>
                 <textarea id="discussionReplyInput" placeholder="Répondre..." rows="2"></textarea>
@@ -206,7 +230,7 @@
             </details>
 
             <details class="info-section" id="section-collision-fiche" open>
-              <summary class="info-section-title"><span>Info sélection</span></summary>
+              <summary class="info-section-title"><span>Info sélection</span><button type="button" class="fiche-more-btn" id="collisionFicheMoreBtn" title="Voir toutes les propriétés (Pset)">+</button></summary>
               <p class="info-empty" id="collisionFichePlaceholder">Cliquez sur un élément de la maquette (ex. un des 2 éléments en rouge/vert) pour voir ses infos.</p>
               <dl class="fiche-content" id="collisionFicheContent" hidden></dl>
               <div id="collisionFicheDocs"></div>
@@ -230,9 +254,8 @@
 
         <div id="discussionsDetailPane" hidden>
           <div id="discussionsDetailContent">
-            <button type="button" id="discussionsBackBtn" class="reset-btn">← Discussions</button>
-
             <div id="threadVisualWrap">
+              <button type="button" id="discussionsBackBtn">← Discussions</button>
               <div id="threadVisualToggle">
                 <button type="button" class="thread-toggle-btn active" data-mode="apres" title="La maquette actuelle, mise à jour">Après</button>
                 <button type="button" class="thread-toggle-btn" data-mode="avant" title="La maquette au moment de la création du fil">Avant</button>
@@ -243,6 +266,69 @@
               <div id="threadViewerPane" hidden></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Ecran de presentation persona (11/09) : affiche systematiquement a
+           chaque changement de profil via le selecteur (jamais au chargement
+           de page ni au changement de projet), avant d'atterrir sur la vue
+           interactive par defaut du profil. Contenu de #personaIntroContent
+           construit dynamiquement en JS (cf buildPersonaIntroContent dans
+           main.js), jamais en dur ici : la liste des onglets accessibles
+           doit toujours refleter le vrai filtrage de applyPersona. -->
+      <div id="view-persona-intro" class="view" hidden>
+        <div id="personaIntroWrap">
+          <div id="personaIntroContent"></div>
+          <button type="button" id="personaIntroContinueBtn" class="landing-part-btn">Continuer</button>
+        </div>
+      </div>
+
+      <!-- Activer les profils (12/09, demande explicite de Gilles) : ecran
+           d'explication avant le vrai selecteur de profil, plutot que de
+           montrer directement les profils dans la navbar. Le #personaSelect
+           deplace ici (comportement/JS inchange, cf applyPersona/change
+           listener dans main.js), accessible via le bouton #activateProfilesBtn
+           de la navbar. -->
+      <div id="view-profils-intro" class="view" hidden>
+        <div id="profilsIntroWrap">
+          <p class="landing-part-eyebrow">Fonctionnalité en réflexion</p>
+          <h2>Activer les profils</h2>
+          <p class="landing-part-lead">Ce mécanisme permet de prévisualiser différentes visions de ce à quoi pourrait ressembler l'application selon le métier ou le lot d'un intervenant sur le chantier (BIM Manager, Bureau d'études, Projeteur, Responsable Synthèse, intervenant externe sans compte...). Chaque profil n'a pas accès aux mêmes onglets ni aux mêmes actions.</p>
+          <p class="landing-part-lead">À chaque changement de profil, une présentation succincte s'affiche d'abord pour rappeler qui est cet acteur, à quoi il a accès et ce qui le distingue des autres, avant d'atterrir sur sa vue par défaut.</p>
+
+          <div class="profils-disclaimer">
+            <p><strong>Fonctionnalité en cours de développement.</strong> Ce ne sont pour l'instant que des idées de profils et de répartition des accès, pas des décisions figées. Elles devront être construites en étroite collaboration avec IES Consulting, pour que les fonctionnalités mises en place répondent réellement à des besoins identifiés sur un projet concret.</p>
+          </div>
+
+          <div class="landing-part">
+            <p class="landing-part-eyebrow">Comment changer de profil</p>
+            <p class="landing-part-lead">Une fois activés, les profils sont accessibles à tout moment via le menu déroulant qui apparaît en haut à droite de la navbar, à la place de ce bouton.</p>
+          </div>
+
+          <button type="button" id="profilsActivateBtn" class="landing-part-btn">Activer les profils</button>
+        </div>
+      </div>
+
+      <!-- Vues persona (11/09) : mockups valides integres tels quels via
+           iframe (meme mecanisme que le widget mockup du Dashboard vault),
+           donnees d'exemple propres a chaque mockup, pas connectees aux
+           vraies CLASHES/DISCUSSIONS pour l'instant (a la demande explicite
+           de Gilles, "on ne touche pas aux discussions et messages"). -->
+      <div id="view-synthese" class="view" hidden>
+        <div id="syntheseListPane">
+          <h2>Réunions de synthèse</h2>
+          <p class="info-empty" id="syntheseMeetingsEmpty" hidden>Aucune réunion pour l'instant.</p>
+          <ul id="syntheseMeetingsList"></ul>
+        </div>
+        <div id="syntheseDetailPane" hidden>
+          <iframe id="syntheseFrame" title="Réunion de synthèse"></iframe>
+        </div>
+      </div>
+      <div id="view-projeteur" class="view" hidden>
+        <div id="projeteurListPane">
+          <h2>Todo</h2>
+          <p class="info-empty" id="projeteurThreadsEmpty" hidden>Aucune instruction pour l'instant.</p>
+          <ul class="info-list" id="projeteurThreadsList"></ul>
         </div>
       </div>
     </div>
@@ -269,6 +355,25 @@
       <div id="downloadModal" role="dialog" aria-modal="true">
         <p>Le document sera téléchargé sur l'ordinateur afin de simplifier sa consultation.</p>
         <button id="downloadModalOk">Ok</button>
+      </div>
+    </div>
+
+    <!-- Modale proprietes IFC (cf mockup 9, ifc-proprietes-modale.html) :
+         groupe "Identification" construit depuis les donnees deja
+         disponibles (metaScene), groupes Pset/Qto suivants lus en direct
+         dans le fichier IFC via IfcAPI.properties.getPropertySets, aucune
+         donnee inventee. -->
+    <div id="propsModalOverlay" hidden>
+      <div id="propsModal" role="dialog" aria-modal="true">
+        <div id="propsModalHead">
+          <div id="propsModalHeadTitles">
+            <p id="propsModalEyebrow"></p>
+            <p id="propsModalTitle"></p>
+          </div>
+          <button id="propsModalClose" aria-label="Fermer">×</button>
+        </div>
+        <div id="propsModalBody"></div>
+        <div id="propsModalFoot">Propriétés lues directement dans le fichier IFC (web-ifc), aucune donnée inventée.</div>
       </div>
     </div>
 

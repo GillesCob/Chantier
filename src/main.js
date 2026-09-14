@@ -8,6 +8,7 @@ const maquettesList = document.getElementById("maquettesList");
 const fichePlaceholder = document.getElementById("fichePlaceholder");
 const ficheContent = document.getElementById("ficheContent");
 const recenterBtn = document.getElementById("recenterBtn");
+const projectSelect = document.getElementById("projectSelect");
 const niveauxResetBtn = document.getElementById("niveauxResetBtn");
 const maquettesResetBtn = document.getElementById("maquettesResetBtn");
 const coupeToolbar = document.getElementById("coupeToolbar");
@@ -31,8 +32,26 @@ const docModalType = document.getElementById("docModalType");
 const docModalDownload = document.getElementById("docModalDownload");
 const downloadModalOverlay = document.getElementById("downloadModalOverlay");
 const downloadModalOk = document.getElementById("downloadModalOk");
+const propsModalOverlay = document.getElementById("propsModalOverlay");
+const propsModalClose = document.getElementById("propsModalClose");
+const propsModalEyebrow = document.getElementById("propsModalEyebrow");
+const propsModalTitle = document.getElementById("propsModalTitle");
+const propsModalBody = document.getElementById("propsModalBody");
+const ficheMoreBtn = document.getElementById("ficheMoreBtn");
+const collisionFicheMoreBtn = document.getElementById("collisionFicheMoreBtn");
 const navLinks = Array.from(document.querySelectorAll(".nav-link"));
 const navbarLinksEl = document.getElementById("navbarLinks");
+const personaSelect = document.getElementById("personaSelect");
+const activateProfilesBtn = document.getElementById("activateProfilesBtn");
+const profilsActivateBtn = document.getElementById("profilsActivateBtn");
+const personaBanner = document.getElementById("personaBanner");
+const personaIntroContent = document.getElementById("personaIntroContent");
+const personaIntroContinueBtn = document.getElementById("personaIntroContinueBtn");
+const syntheseListPane = document.getElementById("syntheseListPane");
+const syntheseMeetingsEmpty = document.getElementById("syntheseMeetingsEmpty");
+const syntheseMeetingsList = document.getElementById("syntheseMeetingsList");
+const syntheseDetailPane = document.getElementById("syntheseDetailPane");
+const syntheseFrame = document.getElementById("syntheseFrame");
 const navbarToggle = document.getElementById("navbarToggle");
 const presentationSectionsList = document.getElementById("presentationSectionsList");
 const presentationContent = document.getElementById("presentationContent");
@@ -52,6 +71,24 @@ landingPresentationBtn.addEventListener("click", () => {
   activatePresentationSection("constat");
 });
 landingDemoBtn.addEventListener("click", () => activateView("viewer"));
+
+// Parallax du hero landing : background-position-y plutot que
+// background-attachment:fixed (peu fiable sur mobile Safari dans un
+// conteneur qui scroll lui-meme, cf #view-landing overflow-y:auto). Deplace
+// l'image plus lentement que le scroll, s'arrete une fois le hero sorti de
+// l'ecran (au-dela, plus besoin de recalculer).
+const viewLandingEl = document.getElementById("view-landing");
+const landingHeroEl = document.getElementById("landingHero");
+viewLandingEl.addEventListener(
+  "scroll",
+  () => {
+    const heroHeight = landingHeroEl.offsetHeight;
+    const scrollTop = viewLandingEl.scrollTop;
+    if (scrollTop > heroHeight) return;
+    landingHeroEl.style.backgroundPositionY = `calc(50% + ${scrollTop * 0.35}px)`;
+  },
+  { passive: true }
+);
 
 const viewerWrap = document.getElementById("viewerWrap");
 const viewViewer = document.getElementById("view-viewer");
@@ -78,7 +115,11 @@ const discussionsThreadsList = document.getElementById("discussionsThreadsList")
 const discussionsThreadsEmpty = document.getElementById("discussionsThreadsEmpty");
 const discussionsListPane = document.getElementById("discussionsListPane");
 const discussionsDetailPane = document.getElementById("discussionsDetailPane");
+const projeteurThreadsList = document.getElementById("projeteurThreadsList");
+const projeteurThreadsEmpty = document.getElementById("projeteurThreadsEmpty");
 const collisionDiscussionTitle = document.getElementById("collisionDiscussionTitle");
+const threadAssignedBadge = document.getElementById("threadAssignedBadge");
+const createInstructionBtn = document.getElementById("createInstructionBtn");
 const discussionsBackBtn = document.getElementById("discussionsBackBtn");
 const threadSnapshotPane = document.getElementById("threadSnapshotPane");
 const threadViewerPane = document.getElementById("threadViewerPane");
@@ -402,6 +443,16 @@ const DEFAULT_CAMERA_STATE = {
   up: [0.09263274774816085, 0.971702521543951, -0.21728640930751625]
 };
 
+// Vue de depart trouvee a la main par Gilles (11/09, cf log camera console)
+// pour la maquette WestRiverSide Hospital. Meme mecanisme que
+// DEFAULT_CAMERA_STATE (demo) : reprise par "Recentrer" via
+// initialCameraState, pose au chargement du projet dans loadProject().
+const HOSPITAL_CAMERA_STATE = {
+  eye: [-2.7967908715118392, 213.746590826589, -18.16663837590921],
+  look: [16.417593652723575, 190.59284595235331, -48.73506981454827],
+  up: [0.28727404199819645, 0.8417831004071789, -0.45702826680949976]
+};
+
 function activateView(viewName) {
   navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === viewName));
   document.querySelectorAll(".view").forEach((view) => {
@@ -411,14 +462,25 @@ function activateView(viewName) {
     viewViewer.insertBefore(viewerWrap, infoPanel);
     window.dispatchEvent(new Event("resize"));
     recenterTarget = null;
-    newDiscussionBtn.hidden = false;
-    coupeBtn.hidden = false;
-    coupeToolbar.hidden = false;
+    // Externe sans compte : consultation seule, jamais d'action d'edition
+    // meme en revenant sur Viewer via la navbar (pas seulement via le
+    // selecteur de profil, cf applyPersona).
+    const isExterne = personaSelect.value === "externe";
+    newDiscussionBtn.hidden = isExterne;
+    coupeBtn.hidden = isExterne;
+    coupeToolbar.hidden = isExterne;
   }
-  try {
-    localStorage.setItem("chantier-active-view", viewName);
-  } catch (e) {
-    // localStorage indisponible (navigation privee...), pas bloquant.
+  // "persona-intro" jamais persiste : c'est un ecran intermediaire dont le
+  // contenu n'est reconstruit qu'au clic sur le selecteur de profil (cf
+  // buildPersonaIntroContent). Le persister ferait revenir sur un ecran vide
+  // au rechargement de page ; on garde alors la derniere vue interactive
+  // reelle deja enregistree.
+  if (viewName !== "persona-intro") {
+    try {
+      localStorage.setItem("chantier-active-view", viewName);
+    } catch (e) {
+      // localStorage indisponible (navigation privee...), pas bloquant.
+    }
   }
 
   // replaceState plutot que location.hash= pour ne pas empiler une entree
@@ -454,6 +516,9 @@ navLinks.forEach((link) => {
     if (!discussionsDetailPane.hidden) {
       discussionsDetailPane.hidden = true;
       discussionsListPane.hidden = false;
+      discussionsReturnView = "discussions";
+      clearClashMarkers();
+      clearClashElementColors();
     }
     activateView(link.dataset.view);
     // Revenir sur Viewer doit repartir d'un etat "neutre" et previsible :
@@ -540,6 +605,311 @@ if (savedView !== "landing") {
   activateView(savedView);
 }
 
+// Profils fictifs (11/09) : simule le fait que l'appli s'adapte au metier/a
+// l'entreprise, en changeant simplement quels onglets sont accessibles et
+// vers quelle vue on atterrit par defaut. Pas de vraie auth/role dans ce
+// POC : chaque profil reste juste un filtre d'affichage sur les nav-links
+// existants (data-persona, liste separee par espace).
+const PERSONA_DEFAULT_VIEW = {
+  "presentation-globale": "landing",
+  "bim-manager": "viewer",
+  synthese: "synthese",
+  be: "discussions",
+  projeteur: "projeteur",
+  externe: "viewer"
+};
+
+// Maquette hospital (11/09) : jeu de test public, pas la demo persona (dont
+// Collision/Discussions/Synthese/Todo restent lies aux donnees fictives sur
+// ses GUID). Demande explicite de Gilles (11/09 soir) : sur ce projet, plus
+// aucun filtrage par profil, juste Viewer + Presentation outil global visibles
+// dans la navbar, et le selecteur de profil lui-meme masque (le concept de
+// profil n'a pas de sens sur un jeu de test sans donnees personas dessus).
+const HOSPITAL_PROJECT_KEY = "hospital-xkt";
+const HOSPITAL_VISIBLE_VIEWS = ["presentation", "viewer"];
+
+// Activer les profils (12/09) : le dropdown #personaSelect ne s'affiche en
+// navbar qu'une fois "active" via l'ecran d'explication (view-profils-intro,
+// cf profilsActivateBtn plus bas). Avant activation, seul le bouton
+// #activateProfilesBtn est visible. Persiste comme le reste (chantier-persona)
+// pour ne pas redemander l'activation a chaque rechargement.
+let profilesActivated = false;
+try {
+  profilesActivated = localStorage.getItem("chantier-profiles-activated") === "1";
+} catch (e) {
+  // localStorage indisponible, on reste desactive par defaut.
+}
+
+function updateProfilesActivationUI() {
+  const isHospitalProject = projectSelect.value === HOSPITAL_PROJECT_KEY;
+  activateProfilesBtn.hidden = isHospitalProject || profilesActivated;
+  personaSelect.hidden = isHospitalProject || !profilesActivated;
+}
+
+function applyPersona(persona, forceNav) {
+  const isHospitalProject = projectSelect.value === HOSPITAL_PROJECT_KEY;
+  updateProfilesActivationUI();
+
+  navLinks.forEach((link) => {
+    if (isHospitalProject) {
+      link.hidden = !HOSPITAL_VISIBLE_VIEWS.includes(link.dataset.view);
+      return;
+    }
+    const personaAllowed = (link.dataset.persona || "").split(" ").includes(persona);
+    link.hidden = !personaAllowed;
+  });
+  personaBanner.hidden = isHospitalProject || persona !== "externe";
+  try {
+    localStorage.setItem("chantier-persona", persona);
+  } catch (e) {
+    // localStorage indisponible, pas bloquant.
+  }
+
+  const currentView = document.querySelector(".view:not([hidden])");
+  const currentViewName = currentView ? currentView.id.replace("view-", "") : null;
+  const currentViewAllowed = navLinks.some((l) => l.dataset.view === currentViewName && !l.hidden);
+  if (forceNav || !currentViewAllowed) {
+    activateView(isHospitalProject ? "viewer" : PERSONA_DEFAULT_VIEW[persona]);
+  }
+
+  // Externe sans compte : consultation seule, aucune action d'edition (coupe,
+  // nouvelle discussion) meme sur l'onglet Viewer. Applique apres
+  // activateView() : sa branche "viewer" reaffiche ces boutons par defaut.
+  // Non applicable sur hospital (pas de profil actif, cf ci-dessus).
+  if (persona === "externe" && !isHospitalProject) {
+    coupeBtn.hidden = true;
+    coupeToolbar.hidden = true;
+    newDiscussionBtn.hidden = true;
+  }
+}
+
+// Ecran de presentation persona (11/09, demande explicite de Gilles) :
+// affiche systematiquement au changement de profil via le selecteur, avant
+// d'atterrir sur la vue interactive par defaut (PERSONA_DEFAULT_VIEW). But :
+// comprendre en un coup d'oeil qui a acces a cette vision de l'app, a quoi,
+// avec quelles fonctionnalites, sans avoir a explorer. Ne concerne pas
+// "presentation-globale" (a deja sa propre page #view-presentation).
+// Contenu redige a la main (qui/fonctionnalites/approfondissement), mais la
+// liste des onglets accessibles n'est JAMAIS recopiee ici : elle est
+// recalculee dynamiquement depuis navLinks a chaque appel, pour ne jamais
+// diverger du vrai gating de applyPersona (persona + projet charge).
+const PERSONA_INTRO_CONTENT = {
+  "bim-manager": {
+    label: "BIM Manager",
+    qui: "Pilote la coordination transverse du projet, interface entre les corps de métier et le client.",
+    fonctionnalites: [
+      { titre: "Maquette 3D complète", desc: "Explorer librement la maquette 3D complète du projet." },
+      { titre: "Fiches IFC réelles", desc: "Consulter les fiches IFC réelles (Pset/Qto) de chaque élément." },
+      { titre: "Collisions et discussions", desc: "Suivre toutes les collisions détectées et tous les fils de discussion." }
+    ],
+    approfondissement: "Avec le Responsable Synthèse, c'est le seul profil qui garde Collision/Discussions visibles quel que soit le projet chargé (pas seulement la maquette de démo), pour pouvoir arbitrer sur n'importe quel chantier suivi dans l'outil."
+  },
+  synthese: {
+    label: "Responsable Synthèse",
+    qui: "Anime la réunion de synthèse, fait le lien entre les fils de discussion ouverts et les décisions actées en réunion.",
+    fonctionnalites: [
+      { titre: "Réunions de synthèse", desc: "Liste des réunions de synthèse, à venir comme terminées." },
+      { titre: "Suivi des fils", desc: "Suivi de l'état de tous les fils de discussion et collisions." }
+    ],
+    approfondissement: "Voit directement dans la liste des fils le badge \"Pris en charge par Bureau d'études\" dès qu'une instruction a été créée pour un Projeteur, sans avoir à ouvrir chaque fil un par un, pour savoir en un coup d'œil ce qui reste vraiment à son arbitrage."
+  },
+  be: {
+    label: "Bureau d'études",
+    qui: "Instruit techniquement les points remontés en réunion de synthèse, jusqu'à leur traduction en tâche concrète pour un Projeteur.",
+    fonctionnalites: [
+      { titre: "Ouvrir un fil", desc: "Ouvrir n'importe quel fil (collision ou discussion classique) et y répondre." },
+      { titre: "Instruction Projeteur", desc: "Déclencher une instruction dédiée pour le Projeteur." }
+    ],
+    approfondissement: "Le bouton \"Créer une instruction pour le projeteur\" duplique tout le contexte 3D du fil source (caméra, niveaux affichés, maquettes visibles, coupe) dans un nouveau fil dédié BE ↔ Projeteur, en laissant une trace visible sur le fil d'origine. Ce bouton apparaît sous le titre du fil ouvert (Collision ou Discussions), tant qu'il ne s'agit pas déjà d'une instruction en cours."
+  },
+  projeteur: {
+    label: "Projeteur",
+    qui: "Modélisateur qui corrige ou complète la maquette suite aux instructions reçues du Bureau d'études.",
+    fonctionnalites: [
+      { titre: "Todo dédiée", desc: "Onglet Todo listant uniquement les instructions qui le concernent (badge \"À traiter\" / \"Traité\")." }
+    ],
+    approfondissement: "Ouvrir une tâche restaure exactement le contexte 3D que le Bureau d'études avait sous les yeux au moment de l'instruction (niveaux, maquettes affichées, caméra), sans avoir à le reconstituer lui-même."
+  },
+  externe: {
+    label: "Externe sans compte",
+    qui: "Intervenant occasionnel (artisan, client...) sans compte, en consultation seule.",
+    fonctionnalites: [
+      { titre: "Navigation et consultation", desc: "Naviguer et consulter la maquette 3D." },
+      { titre: "Aucune édition", desc: "Aucune action d'édition possible (ni coupe, ni nouvelle discussion)." }
+    ],
+    approfondissement: "Pensé pour un lien transmis ponctuellement à quelqu'un qui n'a pas à apprendre l'outil, juste à regarder."
+  }
+};
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Construit et injecte le contenu de l'ecran de presentation pour un
+// persona donne. La liste des onglets accessibles est lue depuis navLinks
+// APRES le filtrage applique par applyPersona (link.hidden), jamais en dur,
+// pour refleter le vrai gating (persona + projet charge, cf
+// PROJECT_RESTRICTED_VIEWS/PROJECT_GATING_EXEMPT_PERSONAS).
+function buildPersonaIntroContent(persona) {
+  const data = PERSONA_INTRO_CONTENT[persona];
+  if (!data) return;
+
+  const accessibleTabs = navLinks
+    .filter((l) => !l.hidden)
+    .map((l) => `<li>${escapeHtml(l.textContent.trim())}</li>`)
+    .join("");
+
+  personaIntroContent.innerHTML = `
+    <p class="landing-part-eyebrow">Profil sélectionné</p>
+    <h2 id="personaIntroTitle">${escapeHtml(data.label)}</h2>
+    <p id="personaIntroWho">${escapeHtml(data.qui)}</p>
+
+    <div class="landing-part">
+      <p class="landing-part-eyebrow">À quoi ce profil a accès</p>
+      <ul class="info-list">${accessibleTabs}</ul>
+    </div>
+
+    <div class="landing-part">
+      <p class="landing-part-eyebrow">Fonctionnalités</p>
+      <div class="landing-part-grid">
+        ${data.fonctionnalites.map((f) => `
+          <div class="landing-part-card">
+            <h3>${escapeHtml(f.titre)}</h3>
+            <p>${escapeHtml(f.desc)}</p>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <div class="landing-part">
+      <p class="landing-part-eyebrow">Ce qui distingue ce profil</p>
+      <p class="landing-part-lead">${escapeHtml(data.approfondissement)}</p>
+    </div>
+  `;
+}
+
+personaIntroContinueBtn.addEventListener("click", () => {
+  activateView(PERSONA_DEFAULT_VIEW[personaSelect.value]);
+});
+
+let initialPersona = "presentation-globale";
+try {
+  initialPersona = localStorage.getItem("chantier-persona") || "presentation-globale";
+} catch (e) {
+  // localStorage indisponible, on reste sur "presentation-globale" par defaut.
+}
+personaSelect.value = initialPersona;
+applyPersona(initialPersona, false);
+
+// Activer les profils (12/09) : plus de selecteur direct dans la navbar,
+// ce bouton mene vers l'ecran d'explication (view-profils-intro).
+activateProfilesBtn.addEventListener("click", () => activateView("profils-intro"));
+
+// Confirmation sur l'ecran d'explication : bascule definitivement (persiste)
+// le bouton pour le vrai #personaSelect en haut a droite de la navbar, puis
+// revient sur la vue par defaut du profil courant (presentation-globale par
+// defaut tant qu'aucun profil n'a ete choisi).
+profilsActivateBtn.addEventListener("click", () => {
+  profilesActivated = true;
+  try {
+    localStorage.setItem("chantier-profiles-activated", "1");
+  } catch (e) {
+    // localStorage indisponible, pas bloquant.
+  }
+  updateProfilesActivationUI();
+  activateView(PERSONA_DEFAULT_VIEW[personaSelect.value]);
+});
+
+personaSelect.addEventListener("change", () => {
+  const persona = personaSelect.value;
+  // Comportement navbar/vue par defaut inchange (gating des onglets, etc.).
+  applyPersona(persona, true);
+  // Ecran de presentation systematique sur un vrai changement de profil
+  // metier (pas "presentation-globale", qui a deja sa page Presentation et
+  // atterrit normalement sur "landing") : remplace la navigation directe
+  // faite juste au-dessus par applyPersona, l'utilisateur y accede via le
+  // bouton "Continuer" (cf personaIntroContinueBtn).
+  if (persona !== "presentation-globale") {
+    buildPersonaIntroContent(persona);
+    activateView("persona-intro");
+  }
+});
+
+// Reunion de synthese (11/09) : liste de reunions plutot qu'un acces direct
+// au mockup unique. Meme contenu (reunion-synthese.html) reutilise pour
+// toutes, seul le statut differe (a-venir = interactif comme aujourd'hui,
+// terminee = lecture seule + resume) : passe en query string a l'iframe,
+// lu cote mockup.
+function formatDateFR(date) {
+  return String(date.getDate()).padStart(2, "0") + "/" +
+    String(date.getMonth() + 1).padStart(2, "0") + "/" +
+    date.getFullYear();
+}
+
+function addDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+const REUNIONS = [
+  { id: "a-venir", label: "Réunion à venir", date: addDays(2), statut: "a-venir" },
+  { id: "passee-1", label: "Réunion de synthèse", date: addDays(-7), statut: "terminee" },
+  { id: "passee-2", label: "Réunion de synthèse", date: addDays(-14), statut: "terminee" }
+];
+
+function renderSyntheseMeetings() {
+  syntheseMeetingsList.innerHTML = "";
+  syntheseMeetingsEmpty.hidden = REUNIONS.length > 0;
+  REUNIONS.forEach((reunion) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "meeting-card";
+    btn.addEventListener("click", () => openSyntheseMeeting(reunion));
+
+    const texts = document.createElement("span");
+    texts.style.display = "flex";
+    texts.style.flexDirection = "column";
+    texts.style.gap = "2px";
+    const label = document.createElement("span");
+    label.className = "meeting-card-label";
+    label.textContent = reunion.label;
+    const date = document.createElement("span");
+    date.className = "meeting-card-date";
+    date.textContent = formatDateFR(reunion.date);
+    texts.append(label, date);
+
+    const badge = document.createElement("span");
+    badge.className = "meeting-status-badge " + reunion.statut;
+    badge.textContent = reunion.statut === "a-venir" ? "À venir" : "Terminée";
+
+    btn.append(texts, badge);
+    li.appendChild(btn);
+    syntheseMeetingsList.appendChild(li);
+  });
+}
+
+function openSyntheseMeeting(reunion) {
+  syntheseFrame.src = "/personas/reunion-synthese.html?statut=" + reunion.statut + "&date=" + encodeURIComponent(formatDateFR(reunion.date));
+  syntheseListPane.hidden = true;
+  syntheseDetailPane.hidden = false;
+}
+
+// Lien "Retour" integre directement dans la page reunion-synthese.html
+// (plutot qu'un bandeau dedie ici) : meme origine, l'iframe appelle cette
+// fonction directement via window.parent.backToSyntheseList().
+function backToSyntheseList() {
+  syntheseDetailPane.hidden = true;
+  syntheseListPane.hidden = false;
+  syntheseFrame.src = "";
+}
+window.backToSyntheseList = backToSyntheseList;
+
+renderSyntheseMeetings();
+
 // Donnees simulees : ce POC ne branche aucune GED reelle (cf CDC, un doc reste
 // un pointeur vers la GED du chantier, jamais une copie). Cles alignees sur les
 // noms de niveaux reels de la Maquette_CEA.xkt (Projet_Archi.ifc), devenue la
@@ -572,6 +942,26 @@ const viewer = new Viewer({
 window.viewer = viewer;
 
 viewer.scene.canvas.backgroundColor = [0.051, 0.055, 0.063];
+
+// Log de la vue caméra dans la console (11/09), pour recuperer facilement
+// les coordonnees eye/look/up une fois la bonne vue de depart trouvee a la
+// main (copier-coller direct dans un DEFAULT_CAMERA_STATE, cf plus haut).
+// Debounce 400ms : evite de spammer la console a chaque frame pendant une
+// rotation/un zoom, un seul log une fois la camera immobile. Idee a
+// reprendre plus tard cote BIM Manager : ecran "Valider la vue de depart"
+// par maquette, utile des 1 maquette et encore plus une fois decoupee par
+// zones (bonne vue au chargement de chaque zone).
+let cameraLogTimeout = null;
+viewer.camera.on("matrix", () => {
+  clearTimeout(cameraLogTimeout);
+  cameraLogTimeout = setTimeout(() => {
+    console.log(
+      "Vue caméra :\neye: [" + viewer.camera.eye.join(", ") +
+      "],\nlook: [" + viewer.camera.look.join(", ") +
+      "],\nup: [" + viewer.camera.up.join(", ") + "]"
+    );
+  }, 400);
+});
 
 const sectionPlanes = new SectionPlanesPlugin(viewer);
 
@@ -708,7 +1098,8 @@ const CLASHES = [
     tagged: [],
     entityIds: ["0w5mREx295pe_ygZN$MR78", "3SWCa1Nkb6shp6EZ_X2tss"],
     ifcPoint: [6.6909, 9.9855, 10.1142],
-    discussion: []
+    discussion: [],
+    assignedTo: "Bureau d'études"
   },
   {
     id: "clash-7",
@@ -807,7 +1198,8 @@ const DISCUSSIONS = [
     maquettes: [{ id: "archi", visible: true }, { id: "toit", visible: false }, { id: "cea", visible: false }],
     discussion: [
       { auteur: "Sofia Benali (Coordination BIM)", texte: "Peux-tu confirmer l'emplacement du tableau électrique sur ce niveau ?" }
-    ]
+    ],
+    assignedTo: "Bureau d'études"
   },
   {
     id: "disc-3",
@@ -836,7 +1228,52 @@ const DISCUSSIONS = [
     ],
     discussion: [
       { auteur: "Vous", texte: "Les lits apparaissent ici, au R+2, mais ne devraient pas y être : ils sont rattachés au mauvais niveau dans la maquette. Peux-tu corriger le rattachement dans le modèle source ?" }
-    ]
+    ],
+    assignedTo: "Bureau d'études"
+  },
+  // Instructions BE -> Projeteur (11/09) : issues de fils/clashs existants
+  // (sourceThreadId conserve le lien vers le fil d'origine, meme mecanisme
+  // que createInstructionBtn), pour peupler l'onglet Todo du Projeteur au
+  // chargement plutot que de dependre d'une creation manuelle en session.
+  {
+    id: "disc-5",
+    zone: "Niveau R+2, lits",
+    auteur: "Vous (Bureau d'études)",
+    tagged: ["Projeteur"],
+    open: true,
+    isInstruction: true,
+    sourceThreadId: "disc-4",
+    maquettes: [{ id: "archi", visible: false }, { id: "toit", visible: false }, { id: "cea", visible: true }],
+    niveaux: [
+      { name: "Soubassement", checked: false },
+      { name: "R+0", checked: false },
+      { name: "R+1", checked: false },
+      { name: "R+2", checked: true },
+      { name: "R+3", checked: false }
+    ],
+    discussion: [{ auteur: "Vous (Bureau d'études)", texte: "Instruction issue de la réunion de synthèse sur « Niveau R+2, lits » : à traiter." }]
+  },
+  {
+    id: "disc-6",
+    zone: "Niveau 2, local technique",
+    auteur: "Vous (Bureau d'études)",
+    tagged: ["Projeteur"],
+    open: true,
+    isInstruction: true,
+    sourceThreadId: "disc-2",
+    maquettes: [{ id: "archi", visible: true }, { id: "toit", visible: false }, { id: "cea", visible: false }],
+    discussion: [{ auteur: "Vous (Bureau d'études)", texte: "Instruction issue de la réunion de synthèse sur « Niveau 2, local technique » : à traiter." }]
+  },
+  {
+    id: "disc-7",
+    zone: "Voile béton BA16 ↔ Poutrelle IPE80 (#2449)",
+    auteur: "Vous (Bureau d'études)",
+    tagged: ["Projeteur"],
+    open: true,
+    isInstruction: true,
+    sourceThreadId: "clash-6",
+    maquettes: [{ id: "archi", visible: false }, { id: "toit", visible: true }, { id: "cea", visible: false }],
+    discussion: [{ auteur: "Vous (Bureau d'études)", texte: "Instruction issue de la réunion de synthèse sur « Voile béton BA16 ↔ Poutrelle IPE80 (#2449) » : à traiter." }]
   }
 ];
 
@@ -854,8 +1291,12 @@ function threadType(thread) {
 let discussionsTypeFilterValue = "tout";
 
 function renderDiscussionsPage() {
+  // Les collisions (detection automatique IfcClash, aucun auteur/tag humain
+  // sur les entrees reelles) passent toujours, contrairement aux fils de
+  // discussion classiques qui restent filtres sur "mes fils" (cree par moi
+  // ou j'y suis tagge).
   const threads = [...CLASHES, ...DISCUSSIONS]
-    .filter((t) => t.auteur === CURRENT_USER || (t.tagged || []).includes(CURRENT_USER))
+    .filter((t) => threadType(t) === "collision" || t.auteur === CURRENT_USER || (t.tagged || []).includes(CURRENT_USER))
     .filter((t) => discussionsTypeFilterValue === "tout" || threadType(t) === discussionsTypeFilterValue);
 
   discussionsThreadsList.innerHTML = "";
@@ -879,6 +1320,14 @@ function renderDiscussionsPage() {
     meta.textContent = "Créé par " + thread.auteur + " · " + thread.discussion.length + " message" + (thread.discussion.length > 1 ? "s" : "");
     main.append(titre, meta);
 
+    // Visible par le Responsable Synthese sans ouvrir le fil (11/09).
+    if (thread.assignedTo) {
+      const assignedTag = document.createElement("span");
+      assignedTag.className = "thread-assigned-tag";
+      assignedTag.textContent = "Pris en charge par " + thread.assignedTo;
+      main.appendChild(assignedTag);
+    }
+
     const badge = document.createElement("span");
     badge.className = "thread-type-badge " + type;
     badge.textContent = type === "collision" ? "Collision" : "Discussion";
@@ -886,6 +1335,44 @@ function renderDiscussionsPage() {
     btn.append(main, badge);
     li.appendChild(btn);
     discussionsThreadsList.appendChild(li);
+  });
+}
+
+// Vue Todo (persona Projeteur) : memes fils que DISCUSSIONS, filtres sur les
+// instructions creees par le BE et taguees "Projeteur" (cf
+// createInstructionBtn). Meme rendu de ligne (.thread-item/.thread-main/
+// .thread-meta) que renderDiscussionsPage, mais liste et filtre distincts :
+// le Projeteur ne doit voir ici que ce qui lui a ete assigne, pas tous ses
+// fils comme dans l'onglet Discussions.
+function renderProjeteurList() {
+  const threads = DISCUSSIONS.filter((t) => t.isInstruction && (t.tagged || []).includes("Projeteur"));
+
+  projeteurThreadsList.innerHTML = "";
+  projeteurThreadsEmpty.hidden = threads.length > 0;
+
+  threads.forEach((thread) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "thread-item";
+    btn.addEventListener("click", () => openThreadDetail(thread, "projeteur"));
+
+    const main = document.createElement("div");
+    main.className = "thread-main";
+    const titre = document.createElement("span");
+    titre.textContent = thread.zone;
+    const meta = document.createElement("span");
+    meta.className = "thread-meta";
+    meta.textContent = "Instruction de " + thread.auteur;
+    main.append(titre, meta);
+
+    const badge = document.createElement("span");
+    badge.className = "thread-type-badge discussion";
+    badge.textContent = isThreadOpen(thread) ? "À traiter" : "Traité";
+
+    btn.append(main, badge);
+    li.appendChild(btn);
+    projeteurThreadsList.appendChild(li);
   });
 }
 
@@ -918,9 +1405,17 @@ function setThreadVisualMode(mode, thread) {
         MAQUETTES.forEach((m) => { m.shown = detection.modeles.includes(m.id); });
         applyVisibility();
         renderMaquetteRows(maquettesList, MAQUETTES);
+        // Meme bulle et memes couleurs rouge/vert que dans l'onglet
+        // Collision : garde le repere visuel du clash precis, pas juste la
+        // camera positionnee dessus.
+        renderClashMarkers(CLASHES.filter((c) => c.detectionId === detection.id));
+        highlightClashMarker(thread);
       }
+      highlightClashElements(thread);
       flyToClash(thread);
     } else {
+      clearClashMarkers();
+      clearClashElementColors();
       // "thread.maquettes" fige quelles maquettes etaient actives a la
       // creation du fil (captureViewerState pour un vrai fil cree depuis le
       // Viewer, ou fige a la main pour les fils de demo simules).
@@ -950,8 +1445,18 @@ threadToggleBtns.forEach((btn) => {
 });
 
 let currentThread = null;
+// Onglet a rouvrir au clic sur "← Discussions" (discussionsBackBtn) : le
+// detail d'un fil est un DOM partage (discussionsDetailPane, a l'interieur
+// de view-discussions), reutilise tel quel pour la vue Todo plutot que
+// duplique (memes toggles avant/apres, meme viewer). "discussions" par
+// defaut ; "projeteur" quand le fil est ouvert depuis renderProjeteurList.
+let discussionsReturnView = "discussions";
 
-function openThreadDetail(thread) {
+function openThreadDetail(thread, returnView) {
+  discussionsReturnView = returnView || "discussions";
+  // discussionsDetailPane vit dans view-discussions : la basculer visible
+  // avant de l'utiliser, meme quand on vient de la vue Todo.
+  activateView("discussions");
   discussionsListPane.hidden = true;
   discussionsDetailPane.hidden = false;
   currentThread = thread;
@@ -982,14 +1487,25 @@ discussionsBackBtn.addEventListener("click", () => {
   discussionsDetailPane.hidden = true;
   discussionsListPane.hidden = false;
   recenterTarget = null;
+  clearClashMarkers();
+  clearClashElementColors();
   restoreAllModelsVisible();
-  renderDiscussionsPage();
-  if (history.replaceState) {
-    history.replaceState(null, "", "#discussions");
+
+  const returnView = discussionsReturnView;
+  discussionsReturnView = "discussions";
+  if (returnView === "projeteur") {
+    activateView("projeteur");
+    renderProjeteurList();
+  } else {
+    renderDiscussionsPage();
+    if (history.replaceState) {
+      history.replaceState(null, "", "#discussions");
+    }
   }
 });
 
 renderDiscussionsPage();
+renderProjeteurList();
 
 // Creation d'un nouveau fil depuis le Viewer, a partir du point de vue et de
 // l'etat (niveaux/maquettes affiches) mis en place par l'utilisateur.
@@ -1464,6 +1980,15 @@ function showThreadDiscussion(thread) {
 
   discussionReplyForm.hidden = !isOpen;
   discussionReplyInput.value = "";
+
+  // Instruction BE -> Projeteur (11/09) : bouton reserve au profil Bureau
+  // d'etudes, jamais propose depuis une instruction deja creee (pas de
+  // chaine BE -> Projeteur -> Projeteur). Badge visible par tous des qu'un
+  // fil a ete pris en charge (demande explicite : le Responsable Synthese
+  // doit voir que ce n'est plus a lui d'agir).
+  threadAssignedBadge.hidden = !thread.assignedTo;
+  if (thread.assignedTo) threadAssignedBadge.textContent = "Pris en charge par " + thread.assignedTo;
+  createInstructionBtn.hidden = personaSelect.value !== "be" || !!thread.isInstruction;
 }
 
 function selectClash(clash) {
@@ -1498,6 +2023,39 @@ discussionReplyForm.addEventListener("submit", (e) => {
   currentDiscussionThread.discussion.push({ auteur: "Vous", texte });
   renderDiscussionMessages(currentDiscussionThread);
   discussionReplyInput.value = "";
+});
+
+// Instruction BE -> Projeteur (11/09) : copie le contexte 3D du fil source
+// (meme mecanisme que "Nouvelle discussion", captureViewerState) dans un
+// nouveau fil dedie a 2, plutot que d'ajouter le Projeteur au fil de
+// synthese existant (qui reste multi-metiers). Le fil source garde une
+// trace (assignedTo) pour que le Responsable Synthese sache que c'est
+// desormais gere par le BE, sans avoir a suivre le fil dedie lui-meme.
+createInstructionBtn.addEventListener("click", () => {
+  if (!currentDiscussionThread) return;
+  const source = currentDiscussionThread;
+  const snapshot = captureViewerState();
+
+  const thread = {
+    id: "disc-" + Date.now(),
+    zone: source.zone,
+    auteur: "Vous (Bureau d'études)",
+    tagged: ["Projeteur"],
+    open: true,
+    isInstruction: true,
+    sourceThreadId: source.id,
+    camera: snapshot.camera,
+    niveaux: snapshot.niveaux,
+    maquettes: snapshot.maquettes,
+    coupe: snapshot.coupe,
+    discussion: [{ auteur: "Vous (Bureau d'études)", texte: "Instruction issue de la réunion de synthèse sur « " + source.zone + " » : à traiter." }]
+  };
+  DISCUSSIONS.push(thread);
+  source.assignedTo = "Bureau d'études";
+
+  renderDiscussionsPage();
+  renderProjeteurList();
+  openThreadDetail(thread);
 });
 
 function goBackToDetections() {
@@ -1597,6 +2155,17 @@ function applyVisibility() {
       viewer.scene.setObjectsVisible(ids, shown);
     });
   });
+
+  // Garde-corps IfcRailing mal positionnes a la source IFC du projet hospital
+  // (cf HOSPITAL_MISPLACED_RAILING_IDS plus bas, diagnostic du 11/09) :
+  // toujours masques quand la maquette "hosp-arch" est chargee, quel que
+  // soit l'etat des niveaux/checkbox. Reapplique ici, a la fin, a chaque
+  // recalcul (et non en dehors de cette fonction, seul point qui pousse de
+  // la visibilite vers xeokit, cf commentaire au-dessus) pour ne jamais se
+  // faire ecraser par un toggle de niveau qui les remettrait visibles.
+  if (shownById.has("hosp-arch")) {
+    viewer.scene.setObjectsVisible(HOSPITAL_MISPLACED_RAILING_IDS, false);
+  }
 }
 
 // Correspondance manuelle par NOM de niveau propre a chaque maquette (plus
@@ -1623,38 +2192,93 @@ function findStoreyObjectIds(maquetteId, storeyName) {
   return metaObject ? viewer.metaScene.getObjectIDsInSubtree(metaObject.id) : [];
 }
 
-function renderNiveaux() {
-  if (!viewer.metaScene.metaModels["cea"]) return;
+// Decouverte generique des niveaux (11/09, projets autres que la demo) :
+// vrais IfcBuildingStorey de chaque maquette chargee, regroupes par nom
+// exact. Contrairement a NIVEAU_MAPPING (demo, mapping fige a la main),
+// aucune correspondance geree si 2 maquettes du meme projet nomment leurs
+// etages differemment (ex. "Level 1" vs "N1") : chaque nom distinct devient
+// sa propre ligne. Idee a reprendre plus tard (garder en tete, pas fait) :
+// un ecran BIM Manager ou il nomme un niveau "canonique" et indique, par
+// maquette, quel nom d'etage lui correspond -> Projets/IES/MOC-ies.md.
+// "Level 2 Ceiling" regroupe avec "Level 2" (11/09, demande explicite) :
+// Revit cree souvent un etage de reference distinct pour heberger les
+// plafonds/plenum d'un niveau, pas un vrai niveau separe du point de vue de
+// l'usager. Regle generique (pas juste Level 2/3) : tout nom se terminant
+// par "Ceiling" rejoint le niveau de meme prefixe.
+function canonicalStoreyName(name) {
+  return name
+    .replace(/\s+Ceiling$/i, "")
+    // "Level 7A" rejoint "Level 7" (11/09, demande explicite) : suffixe
+    // lettre apres un niveau numerote, variante/mezzanine du meme niveau
+    // plutot qu'un vrai niveau distinct du point de vue de l'usager.
+    .replace(/^(Level\s+\d+)[A-Z]$/i, "$1");
+}
 
+function buildGenericNiveaux(previousChecked) {
+  const loadedMaquettes = MAQUETTES.filter((m) => viewer.metaScene.metaModels[m.id]);
+  if (loadedMaquettes.length === 0) return null;
+
+  const storeysByName = new Map();
+  loadedMaquettes.forEach((maquette) => {
+    Object.values(viewer.metaScene.metaObjectsByType["IfcBuildingStorey"] || {})
+      .filter((mo) => mo.metaModels.some((m) => m.id === maquette.id))
+      .forEach((mo) => {
+        const ids = viewer.metaScene.getObjectIDsInSubtree(mo.id);
+        if (ids.length === 0) return;
+        const key = canonicalStoreyName(mo.name);
+        if (!storeysByName.has(key)) storeysByName.set(key, {});
+        const bucket = storeysByName.get(key);
+        bucket[maquette.id] = (bucket[maquette.id] || []).concat(ids);
+      });
+  });
+
+  return Array.from(storeysByName.entries())
+    .sort((a, b) => a[0].localeCompare(b[0], "fr", { numeric: true }))
+    .map(([name, objectsByMaquette]) => ({
+      name,
+      checked: previousChecked.has(name) ? previousChecked.get(name) : true,
+      checkboxEl: null,
+      objectsByMaquette
+    }));
+}
+
+function renderNiveaux() {
   // Le rendu peut se re-declencher a chaque maquette qui termine son
   // chargement (elles arrivent dans un ordre pas garanti) : on repart de zero
   // a chaque fois, mais en conservant l'etat coche choisi par l'utilisateur
   // entre-temps, plutot que de le reinitialiser silencieusement.
   const previousChecked = new Map(niveauxState.map((n) => [n.name, n.checked]));
 
+  let niveaux;
+  if (projectSelect.value.startsWith("demo")) {
+    if (!viewer.metaScene.metaModels["cea"]) return;
+    niveaux = NIVEAU_MAPPING.map((entry) => {
+      const objectsByMaquette = {};
+      const ceaIds = findStoreyObjectIds("cea", entry.cea);
+      if (ceaIds.length > 0) objectsByMaquette.cea = ceaIds;
+      const archiIds = findStoreyObjectIds("archi", entry.archi);
+      if (archiIds.length > 0) objectsByMaquette.archi = archiIds;
+      if (entry.label === "R+3") {
+        const toitMetaModel = viewer.metaScene.metaModels["toit"];
+        if (toitMetaModel && toitMetaModel.rootMetaObject) {
+          const toitIds = viewer.metaScene.getObjectIDsInSubtree(toitMetaModel.rootMetaObject.id);
+          if (toitIds.length > 0) objectsByMaquette.toit = toitIds;
+        }
+      }
+      return {
+        name: entry.label,
+        checked: previousChecked.has(entry.label) ? previousChecked.get(entry.label) : true,
+        checkboxEl: null,
+        objectsByMaquette
+      };
+    });
+  } else {
+    niveaux = buildGenericNiveaux(previousChecked);
+    if (niveaux === null) return;
+  }
+
   niveauxList.innerHTML = "";
   niveauxState.length = 0;
-
-  const niveaux = NIVEAU_MAPPING.map((entry) => {
-    const objectsByMaquette = {};
-    const ceaIds = findStoreyObjectIds("cea", entry.cea);
-    if (ceaIds.length > 0) objectsByMaquette.cea = ceaIds;
-    const archiIds = findStoreyObjectIds("archi", entry.archi);
-    if (archiIds.length > 0) objectsByMaquette.archi = archiIds;
-    if (entry.label === "R+3") {
-      const toitMetaModel = viewer.metaScene.metaModels["toit"];
-      if (toitMetaModel && toitMetaModel.rootMetaObject) {
-        const toitIds = viewer.metaScene.getObjectIDsInSubtree(toitMetaModel.rootMetaObject.id);
-        if (toitIds.length > 0) objectsByMaquette.toit = toitIds;
-      }
-    }
-    return {
-      name: entry.label,
-      checked: previousChecked.has(entry.label) ? previousChecked.get(entry.label) : true,
-      checkboxEl: null,
-      objectsByMaquette
-    };
-  });
 
   niveaux.forEach((niveau) => {
     niveauxState.push(niveau);
@@ -1851,6 +2475,146 @@ function showFiche(entity) {
   }
 }
 
+// Modale proprietes IFC (mockup 9) : groupe "Identification" reconstruit
+// depuis les donnees deja disponibles (metaScene), groupes Pset/Qto suivants
+// lus en direct dans le fichier source via IfcAPI.properties.getPropertySets
+// (aucune donnee inventee, cf note de bas de modale). N'a de resultat que
+// pour les elements issus d'une maquette chargee via WebIFCLoaderPlugin
+// (archi/toit) : la maquette CEA (xkt) n'est pas parsee par IfcAPI, la
+// modale se limite alors au groupe Identification.
+function ifcValueToString(v) {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "object" && "value" in v) return String(v.value);
+  return String(v);
+}
+
+function psetToRows(pset) {
+  if (Array.isArray(pset.HasProperties)) {
+    return pset.HasProperties
+      .filter((p) => p && p.Name)
+      .map((p) => [ifcValueToString(p.Name), ifcValueToString(p.NominalValue)]);
+  }
+  if (Array.isArray(pset.Quantities)) {
+    return pset.Quantities
+      .filter((q) => q && q.Name)
+      .map((q) => {
+        const valueKey = Object.keys(q).find((k) => k.endsWith("Value") && k !== "NominalValue");
+        return [ifcValueToString(q.Name), valueKey ? ifcValueToString(q[valueKey]) : ""];
+      });
+  }
+  return [];
+}
+
+// GlobalId (entity.id xeokit) -> (modelID, expressID) web-ifc : essaie
+// chaque modele actuellement ouvert dans IfcAPI (OpenModel n'est jamais
+// suivi de CloseModel par WebIFCLoaderPlugin, les modeles restent
+// interrogeables apres chargement) jusqu'a trouver celui qui reconnait ce
+// GlobalId.
+function resolveIfcExpressId(globalId) {
+  for (let modelID = 0; modelID < 8; modelID++) {
+    if (!IfcAPI.IsModelOpen(modelID)) continue;
+    const expressID = IfcAPI.GetExpressIdFromGuid(modelID, globalId);
+    if (expressID !== undefined && expressID !== null && expressID !== 0) {
+      return { modelID, expressID: Number(expressID) };
+    }
+  }
+  return null;
+}
+
+async function getRealPsets(globalId) {
+  const resolved = resolveIfcExpressId(globalId);
+  if (!resolved) return [];
+  try {
+    return await IfcAPI.properties.getPropertySets(resolved.modelID, resolved.expressID, true);
+  } catch (e) {
+    return [];
+  }
+}
+
+function buildPsetGroup(title, rows, open) {
+  const details = document.createElement("details");
+  details.className = "pset-group";
+  details.name = "pset-accordion";
+  if (open) details.open = true;
+  const summary = document.createElement("summary");
+  summary.className = "pset-summary";
+  const titleSpan = document.createElement("span");
+  titleSpan.textContent = title;
+  const countSpan = document.createElement("span");
+  countSpan.className = "pset-count";
+  countSpan.textContent = String(rows.length);
+  summary.append(titleSpan, countSpan);
+  const table = document.createElement("div");
+  table.className = "pset-table";
+  rows.forEach(([k, v]) => {
+    const row = document.createElement("div");
+    row.className = "pset-row";
+    const kEl = document.createElement("span");
+    kEl.textContent = k;
+    const vEl = document.createElement("span");
+    vEl.textContent = v;
+    row.append(kEl, vEl);
+    table.appendChild(row);
+  });
+  details.append(summary, table);
+  return details;
+}
+
+async function openPropsModal(entity) {
+  const metaObject = viewer.metaScene.metaObjects[entity.id];
+  const name = metaObject ? metaObject.name : entity.id;
+  const type = metaObject ? metaObject.type : "n/a";
+
+  propsModalEyebrow.textContent = type + " · GUID " + entity.id;
+  propsModalTitle.textContent = name;
+  propsModalBody.innerHTML = "";
+  propsModalBody.appendChild(buildPsetGroup("Identification", [
+    ["GlobalId", entity.id],
+    ["Nom", name],
+    ["Niveau", findNiveauIfc(entity.id) || "n/a"],
+    ["Type IFC", type]
+  ], true));
+  propsModalOverlay.hidden = false;
+
+  // Revit exporte souvent plusieurs Pset avec le meme nom ("Autre", "Cotes",
+  // "Structure"...) pour un seul element : fusionnes ici en un seul groupe
+  // par nom (toutes leurs lignes reunies dans l'ordre de lecture) plutot que
+  // d'afficher des doublons visuels, sans rien inventer ni perdre aucune
+  // propriete reelle.
+  const realPsets = await getRealPsets(entity.id);
+  const rowsByLabel = new Map();
+  realPsets.forEach((pset) => {
+    const rows = psetToRows(pset);
+    if (rows.length === 0) return;
+    const label = pset.Name ? ifcValueToString(pset.Name) : "Groupe";
+    if (!rowsByLabel.has(label)) rowsByLabel.set(label, []);
+    rowsByLabel.get(label).push(...rows);
+  });
+  rowsByLabel.forEach((rows, label) => {
+    propsModalBody.appendChild(buildPsetGroup(label, rows, false));
+  });
+}
+
+function closePropsModal() {
+  propsModalOverlay.hidden = true;
+}
+propsModalClose.addEventListener("click", closePropsModal);
+propsModalOverlay.addEventListener("click", (e) => {
+  if (e.target === propsModalOverlay) closePropsModal();
+});
+
+// Bouton "+" a cote du titre "Info selection" (Viewer et Collision partagent
+// la meme selection, cf selectedEntity) : preventDefault/stopPropagation
+// necessaires, le bouton vit dans un <summary> qui basculerait sinon
+// l'accordeon au clic.
+function openPropsModalForSelection(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (selectedEntity) openPropsModal(selectedEntity);
+}
+ficheMoreBtn.addEventListener("click", openPropsModalForSelection);
+collisionFicheMoreBtn.addEventListener("click", openPropsModalForSelection);
+
 function clearFiche() {
   fichePlaceholder.hidden = false;
   ficheContent.hidden = true;
@@ -1976,6 +2740,12 @@ function handleViewerPick(canvasCoords) {
     hit.entity.selected = true;
     selectedEntity = hit.entity;
     showFiche(hit.entity);
+    // Discussions : pas de drawer "Info selection" dans cette vue, un clic
+    // ouvre directement la modale proprietes plutot que de rester sans
+    // retour visuel.
+    if (!discussionsDetailPane.hidden) {
+      openPropsModal(hit.entity);
+    }
   } else {
     clearFiche();
   }
@@ -2019,12 +2789,100 @@ viewerCanvas.addEventListener("touchend", (e) => {
 
 renderMaquetteRows(maquettesList, MAQUETTES);
 
+// Projets/maquettes alternatifs (11/09, test de charge grosse maquette) :
+// WestRiverSide Hospital (Auckland Open IFC Model Repository, Architecture +
+// Mechanical IFC4, ~147 Mo, 34 600 elements), teste reellement en local
+// (chargement + IfcClash : 103s, 3504 clashs reels, cf
+// tools/big-model-test/). Ici, Viewer uniquement : Collision/Discussions
+// restent lies aux donnees du projet demo (DETECTIONS/CLASHES hardcodes sur
+// les GUID archi/toit), pas reconnectes a ce projet pour l'instant.
+// Options "IFC brut" retirees le 11/09 (test reel : >10 min d'attente sur
+// WestRiverSide 147 Mo, rien affiche) : la comparaison a rempli son role
+// (ressentir la difference), mais infliger cette attente a IES n'a aucun
+// interet produit. XKT systematique, cf decision du meme jour plus haut.
+
+// Masquage cible (11/09) : 30 des 89 IfcRailing de architecture.ifc ont une
+// chaine IfcLocalPlacement corrompue directement a la source (offset local
+// quasiment oppose a l'offset de leur placement parent, verifie avec
+// ifcopenshell.util.placement.get_local_placement independamment de
+// web-ifc/xeokit-convert, donc pas un bug du pipeline d'import de ce
+// projet). Ils atterrissent pres de l'origine du monde IFC au lieu de leur
+// etage. Escaliers (IfcStair) non concernes (0/60 hors enveloppe). Fichier
+// source = jeu de test public (WestRiverSide Hospital), pas la vraie
+// maquette IES a venir : contournement visuel plutot que reparation de
+// l'IFC ou reconversion, cf diagnostic complet valide par Gilles le 11/09.
+// Liste figee, generee par script ifcopenshell ad-hoc (non suivi dans le
+// repo) : GUID = element.GlobalId, elements dont le centre de bbox tombe
+// hors de l'enveloppe du batiment (bbox des IfcSlab, marge 15m).
+const HOSPITAL_MISPLACED_RAILING_IDS = [
+  "1NU4DBqZr9TveX2NFh7PrI",
+  "2e$FV4Y9f6NPrJ7KOfe14U",
+  "3NoPuFwSP2$ukR3bjeYMMS",
+  "37lZNn4SHFawe$5ITwJJpq",
+  "1zhleAQ4z7IhcfPaY8GgGb",
+  "2ZoIlszeb7y8t1_FxE$e8y",
+  "0OLDFHvsT2fvWuPyaWakuD",
+  "0mPx06yCT81Oir7rgqE8a2",
+  "21BheI$eX15OQoWN2f7nBq",
+  "1JtlWVxEHF7AtnVhy0$7Xe",
+  "38$O$vZ5r3$h_KGQTTsXE5",
+  "0FQP_M_L9CUOuIiAy668HI",
+  "0DJSIqdVP289oPRnBHeG5C",
+  "2WetIfYwT3igEiGFFiPlO9",
+  "0yWW_91e9BzgCnPQ6U_Vy2",
+  "3Z2iznH717FxB09x2OQu1S",
+  "0bWHqDYhP9l9bZwXFgwD6F",
+  "0cvnr162r2qRGfCroKgvqN",
+  "2Cd4x0qfzCaubEd0IqNKaH",
+  "1iTlCtoG5BNRuGHj1YUyKK",
+  "1Ib3Rs4fn1Ufu1Vad7Ar6F",
+  "2rxO7f4zbBJ8Ji6togGdpG",
+  "1vFhikqQ163Pzjkl699cjh",
+  "2ebwD8q_r6DeLBBZ8NlCRr",
+  "3Aqo$pSrb7YwrcNdiiJdK0",
+  "2M$9CiIFv8_fHn8uoZNXCJ",
+  "0mRctqW7P5IwSZkA2Fi9OV",
+  "3sXCbf4XTByQhehgTY2Son",
+  "3LgX6wz1L7pRQ1ad9wkmz6",
+  "0Yy5HEbTj9jQzJM_Clf3Z_"
+];
+
+const PROJECTS = {
+  "demo-xkt": [
+    { id: "archi", src: "/models/Projet_structure.ifc", label: "Maquette STR", color: "#c9d1d9", shown: true },
+    { id: "toit", src: "/models/Toit_Metal_2.ifc", label: "Maquette TOITURE", color: "#e8935c", colorize: [0.91, 0.58, 0.36], shown: true },
+    { id: "cea", src: "/models/Maquette_CEA.xkt", label: "Maquette CEA", color: "#a371f7", format: "xkt", shown: true }
+  ],
+  "hospital-xkt": [
+    { id: "hosp-arch", src: "/models/hospital/architecture.xkt", label: "Architecture", color: "#c9d1d9", format: "xkt", shown: true },
+    { id: "hosp-mep", src: "/models/hospital/mechanical.xkt", label: "Mechanical (CVC)", color: "#e8935c", colorize: [0.91, 0.58, 0.36], format: "xkt", shown: true }
+  ]
+};
+
 const IfcAPI = new WebIFC.IfcAPI();
 IfcAPI.SetWasmPath("/wasm/");
 
-IfcAPI.Init().then(() => {
-  const ifcLoader = new WebIFCLoaderPlugin(viewer, { WebIFC, IfcAPI });
-  const xktLoader = new XKTLoaderPlugin(viewer);
+let ifcLoader = null;
+let xktLoader = null;
+
+function loadProject(projectKey) {
+  MAQUETTES.forEach((maquette) => {
+    if (maquette.model) maquette.model.destroy();
+  });
+  MAQUETTES.length = 0;
+  PROJECTS[projectKey].forEach((m) => MAQUETTES.push(Object.assign({}, m)));
+
+  niveauxState.length = 0;
+  // renderNiveaux() sort tot si "cea" n'est pas (encore) charge : vide la
+  // liste a la main ici pour ne pas laisser les niveaux de l'ancien projet
+  // affiches (ex. bascule vers Hospital, qui n'a pas de maquette "cea").
+  niveauxList.innerHTML = "";
+  renderNiveaux();
+  renderMaquetteRows(maquettesList, MAQUETTES);
+  renderMaquetteRows(collisionMaquettesList, MAQUETTES);
+
+  loadingOverlay.classList.remove("hidden", "error");
+  loadingOverlay.textContent = "";
   let loadedCount = 0;
 
   MAQUETTES.forEach((maquette) => {
@@ -2043,7 +2901,7 @@ IfcAPI.Init().then(() => {
       (maquetteCountEls.get(maquette.id) || []).forEach((el) => { el.textContent = countText; });
 
       // Rappelee a chaque chargement (pas seulement celui de la CEA, source
-      // des niveaux) : les 3 maquettes chargent en parallele, l'ordre reel
+      // des niveaux) : les maquettes chargent en parallele, l'ordre reel
       // d'arrivee n'est pas garanti. renderNiveaux() sort tout de suite si
       // la CEA n'est pas encore prete, et se re-declenche correctement des
       // qu'elle l'est, meme si une autre maquette a fini avant.
@@ -2052,8 +2910,8 @@ IfcAPI.Init().then(() => {
       loadedCount++;
       if (loadedCount === MAQUETTES.length) {
         loadingOverlay.classList.add("hidden");
-        viewer.cameraFlight.flyTo(DEFAULT_CAMERA_STATE);
-        initialCameraState = DEFAULT_CAMERA_STATE;
+        initialCameraState = projectKey.startsWith("hospital") ? HOSPITAL_CAMERA_STATE : DEFAULT_CAMERA_STATE;
+        viewer.cameraFlight.flyTo(initialCameraState);
       }
     });
 
@@ -2062,4 +2920,16 @@ IfcAPI.Init().then(() => {
       loadingOverlay.textContent = "Erreur de chargement (" + maquette.label + ") : " + msg;
     });
   });
+}
+
+IfcAPI.Init().then(() => {
+  ifcLoader = new WebIFCLoaderPlugin(viewer, { WebIFC, IfcAPI });
+  xktLoader = new XKTLoaderPlugin(viewer);
+  loadProject(projectSelect.value);
+});
+
+projectSelect.addEventListener("change", () => {
+  if (!ifcLoader) return;
+  loadProject(projectSelect.value);
+  applyPersona(personaSelect.value, false);
 });

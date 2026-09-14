@@ -2,3 +2,8 @@ node_modules
 dist
 .DS_Store
 tools/clash-test/venv
+
+# IFC bruts non servis par l'UI (conversion .xkt utilisee a la place, cf MOC-ies.md)
+public/models/CEA_source.ifc
+public/models/hospital/architecture.ifc
+public/models/hospital/mechanical.ifc
